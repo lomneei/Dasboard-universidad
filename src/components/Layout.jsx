@@ -1,11 +1,13 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 
-const links = [
-  { to: '/', label: 'Esta semana' },
-  { to: '/ramos', label: 'Ramos' },
+// Nav: 2 secciones a cada lado de INICIO (que va destacado al centro)
+const linksIzquierda = [
+  { to: '/tareas', label: 'Tareas' },
+  { to: '/calendario', label: 'Calendario' },
+]
+const linksDerecha = [
   { to: '/horario', label: 'Horario' },
-  { to: '/evaluaciones', label: 'Evaluaciones' },
   { to: '/voley', label: 'Vóley' },
 ]
 
@@ -21,6 +23,23 @@ export function MarcaDuni({ className = 'text-xl' }) {
       </span>
       <span className="text-cyan-400">.</span>
     </span>
+  )
+}
+
+function PillNav({ to, label }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-200 sm:px-3 sm:text-sm ${
+          isActive
+            ? 'bg-violet-600 text-white glow-activo'
+            : 'text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+        }`
+      }
+    >
+      {label}
+    </NavLink>
   )
 }
 
@@ -40,22 +59,26 @@ export default function Layout() {
             Salir
           </button>
         </div>
-        <nav className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 pb-2">
-          {links.map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-violet-600 text-white glow-activo'
-                    : 'text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
-                }`
-              }
-            >
-              {label}
-            </NavLink>
+        <nav className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto px-4 pb-2.5 sm:justify-center sm:gap-2">
+          {linksIzquierda.map((l) => (
+            <PillNav key={l.to} {...l} />
+          ))}
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              `whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold tracking-wide transition-all duration-200 sm:px-6 sm:text-base ${
+                isActive
+                  ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-[0_0_24px_rgba(139,92,246,0.5)]'
+                  : 'bg-white/5 text-violet-300 hover:bg-violet-600/30 hover:text-white'
+              }`
+            }
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            INICIO
+          </NavLink>
+          {linksDerecha.map((l) => (
+            <PillNav key={l.to} {...l} />
           ))}
         </nav>
       </header>
