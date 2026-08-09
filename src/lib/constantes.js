@@ -32,3 +32,23 @@ export const TIPOS_EVALUACION = [
 // Rango del calendario semanal (horas)
 export const HORA_MIN = 8
 export const HORA_MAX = 21
+
+// Tipos de actividad para el registro de asistencia (valores de la DB)
+export const TIPOS_ASISTENCIA = [
+  { valor: 'clase', nombre: 'Clase' },
+  { valor: 'ayudantia', nombre: 'Ayudantía' },
+  { valor: 'laboratorio', nombre: 'Laboratorio' },
+  { valor: 'taller', nombre: 'Taller' },
+]
+
+export const CATEGORIAS_CHECKLIST = [
+  { valor: 'academico', nombre: 'Académico', clases: 'bg-indigo-100 text-indigo-700' },
+  { valor: 'negocio', nombre: 'Negocio', clases: 'bg-emerald-100 text-emerald-700' },
+  { valor: 'personal', nombre: 'Personal', clases: 'bg-amber-100 text-amber-700' },
+]
+
+export const TIPOS_VOLLEY = [
+  { valor: 'entrenamiento', nombre: 'Entrenamiento', emoji: '🏐' },
+  { valor: 'partido', nombre: 'Partido', emoji: '🆚' },
+  { valor: 'torneo', nombre: 'Torneo', emoji: '🏆' },
+]

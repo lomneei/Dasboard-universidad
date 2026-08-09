@@ -5,6 +5,7 @@ import { formatearFecha } from '../lib/fechas'
 import { analizarRamo, interpretarNecesaria, formatearNota } from '../lib/notas'
 import EvaluacionModal from '../components/EvaluacionModal.jsx'
 import Modal from '../components/Modal.jsx'
+import AsistenciaHoy from '../components/AsistenciaHoy.jsx'
 
 // Tarjeta que traduce la "nota necesaria" a un mensaje entendible
 function TarjetaNecesaria({ titulo, objetivo, necesaria, pesoPendiente }) {
@@ -289,6 +290,8 @@ export default function RamoDetalle() {
           ))}
         </div>
       )}
+
+      <AsistenciaHoy ramoId={id} />
 
       <EvaluacionModal
         abierto={modalEval}
