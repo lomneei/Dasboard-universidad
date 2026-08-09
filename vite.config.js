@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Dashboard Uni',
-        short_name: 'Dashboard Uni',
+        name: 'DUNI',
+        short_name: 'DUNI',
         description: 'Ramos, notas, horario, asistencia y vóley en un solo lugar',
         lang: 'es',
         display: 'standalone',

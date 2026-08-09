@@ -38,7 +38,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
         <h1 className="mb-1 text-center text-2xl font-bold text-indigo-600">
-          Dashboard Uni
+          DUNI
         </h1>
         <p className="mb-6 text-center text-sm text-slate-500">
           {modo === 'login' ? 'Inicia sesión para continuar' : 'Crea tu cuenta'}

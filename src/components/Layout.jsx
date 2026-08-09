@@ -16,7 +16,7 @@ export default function Layout() {
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3">
-          <span className="text-lg font-bold text-indigo-600">Dashboard Uni</span>
+          <span className="text-lg font-bold text-indigo-600">DUNI</span>
           <button
             onClick={signOut}
             className="rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100"
