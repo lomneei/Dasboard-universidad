@@ -12,7 +12,7 @@ function BadgeUrgencia({ fecha, nota }) {
 
   const texto = dias === 0 ? '¡Hoy!' : dias === 1 ? 'Mañana' : `En ${dias} días`
   const estilo =
-    dias <= 2 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+    dias <= 2 ? 'bg-red-500/15 text-red-300' : 'bg-amber-500/15 text-amber-300'
 
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${estilo}`}>
@@ -69,10 +69,10 @@ export default function Evaluaciones() {
     }
   }, [evaluaciones, filtroRamo])
 
-  if (cargando) return <p className="text-slate-500">Cargando evaluaciones…</p>
+  if (cargando) return <p className="text-zinc-400">Cargando evaluaciones…</p>
 
   const Fila = ({ ev }) => (
-    <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+    <div className="flex items-center gap-3 panel p-4">
       <div
         className="h-10 w-1.5 shrink-0 rounded-full"
         style={{ backgroundColor: ev.ramos?.color ?? '#94a3b8' }}
@@ -82,7 +82,7 @@ export default function Evaluaciones() {
           <p className="font-medium">{ev.nombre}</p>
           <BadgeUrgencia fecha={ev.fecha} nota={ev.nota} />
         </div>
-        <p className="truncate text-sm text-slate-500">
+        <p className="truncate text-sm text-zinc-400">
           {ev.ramos?.sigla} · {ev.tipo} · {ev.peso_pct}%
           {ev.fecha ? ` · ${formatearFecha(ev.fecha)}` : ' · sin fecha'}
         </p>
@@ -91,8 +91,8 @@ export default function Evaluaciones() {
         <span
           className={`rounded-lg px-2.5 py-1 text-sm font-bold ${
             Number(ev.nota) >= 4
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
+              ? 'bg-emerald-500/15 text-emerald-300'
+              : 'bg-red-500/15 text-red-300'
           }`}
         >
           {formatearNota(ev.nota)}
@@ -104,14 +104,14 @@ export default function Evaluaciones() {
             setEditando(ev)
             setModalAbierto(true)
           }}
-          className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          className="rounded p-1.5 text-zinc-500 hover:bg-white/10 hover:text-zinc-300"
           title="Editar"
         >
           ✎
         </button>
         <button
           onClick={() => eliminar(ev)}
-          className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+          className="rounded p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
           title="Eliminar"
         >
           🗑
@@ -128,7 +128,7 @@ export default function Evaluaciones() {
           <select
             value={filtroRamo}
             onChange={(e) => setFiltroRamo(e.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+            className="campo text-sm"
           >
             <option value="">Todos los ramos</option>
             {ramos.map((r) => (
@@ -142,24 +142,24 @@ export default function Evaluaciones() {
               setEditando(null)
               setModalAbierto(true)
             }}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="btn-primario px-4 py-2 text-sm"
           >
             + Nueva
           </button>
         </div>
       </div>
 
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
       {listas.pendientes.length === 0 && listas.rendidas.length === 0 ? (
-        <p className="rounded-xl bg-white p-8 text-center text-slate-500 shadow-sm">
+        <p className="panel p-8 text-center text-zinc-400">
           No hay evaluaciones{filtroRamo ? ' para este ramo' : ''}. Crea una con “+ Nueva”.
         </p>
       ) : (
         <div className="space-y-6">
           {listas.pendientes.length > 0 && (
             <section>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
                 Pendientes
               </h2>
               <div className="space-y-2">
@@ -171,7 +171,7 @@ export default function Evaluaciones() {
           )}
           {listas.rendidas.length > 0 && (
             <section>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
                 Rendidas
               </h2>
               <div className="space-y-2">

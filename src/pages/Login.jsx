@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { MarcaDuni } from '../components/Layout.jsx'
 
 export default function Login() {
   const { user, loading, signIn, signUp } = useAuth()
@@ -36,11 +37,11 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-1 text-center text-2xl font-bold text-indigo-600">
-          DUNI
+      <div className="w-full max-w-sm panel p-8">
+        <h1 className="mb-1 text-center">
+          <MarcaDuni className="text-3xl" />
         </h1>
-        <p className="mb-6 text-center text-sm text-slate-500">
+        <p className="mb-6 text-center text-sm text-zinc-400">
           {modo === 'login' ? 'Inicia sesión para continuar' : 'Crea tu cuenta'}
         </p>
 
@@ -52,7 +53,7 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
           <div>
@@ -63,17 +64,17 @@ export default function Login() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {mensaje && <p className="text-sm text-green-600">{mensaje}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          {mensaje && <p className="text-sm text-emerald-400">{mensaje}</p>}
 
           <button
             type="submit"
             disabled={enviando}
-            className="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="btn-primario w-full py-2"
           >
             {enviando ? '…' : modo === 'login' ? 'Entrar' : 'Registrarme'}
           </button>
@@ -85,7 +86,7 @@ export default function Login() {
             setError(null)
             setMensaje(null)
           }}
-          className="mt-4 w-full text-center text-sm text-indigo-600 hover:underline"
+          className="mt-4 w-full text-center text-sm text-violet-400 hover:underline"
         >
           {modo === 'login'
             ? '¿No tienes cuenta? Regístrate'

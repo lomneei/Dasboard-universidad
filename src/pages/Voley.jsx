@@ -9,18 +9,18 @@ const FORM_VACIO = { tipo: 'entrenamiento', fecha: '', notas: '', planificado: t
 function TarjetaEvento({ evento, onMarcar, onEliminar }) {
   const tipo = TIPOS_VOLLEY.find((t) => t.valor === evento.tipo)
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+    <div className="flex items-center gap-3 panel p-4">
       <span className="text-2xl">{tipo?.emoji ?? '🏐'}</span>
       <div className="min-w-0 flex-1">
         <p className="font-medium capitalize">
           {tipo?.nombre ?? evento.tipo}
           {!evento.planificado && (
-            <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+            <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-zinc-400">
               no planificado
             </span>
           )}
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-zinc-400">
           {formatearFecha(evento.fecha)}
           {evento.notas ? ` · ${evento.notas}` : ''}
         </p>
@@ -30,8 +30,8 @@ function TarjetaEvento({ evento, onMarcar, onEliminar }) {
           onClick={() => onMarcar(evento, true)}
           className={`rounded-lg px-3 py-1 text-sm font-medium ${
             evento.asistio === true
-              ? 'bg-green-600 text-white'
-              : 'bg-slate-100 text-slate-500 hover:bg-green-50'
+              ? 'bg-emerald-500 text-white'
+              : 'bg-white/10 text-zinc-400 hover:bg-emerald-500/10'
           }`}
         >
           ✓ Fui
@@ -41,14 +41,14 @@ function TarjetaEvento({ evento, onMarcar, onEliminar }) {
           className={`rounded-lg px-3 py-1 text-sm font-medium ${
             evento.asistio === false
               ? 'bg-red-600 text-white'
-              : 'bg-slate-100 text-slate-500 hover:bg-red-50'
+              : 'bg-white/10 text-zinc-400 hover:bg-red-500/10'
           }`}
         >
           ✗ No fui
         </button>
         <button
           onClick={() => onEliminar(evento)}
-          className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+          className="rounded p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
           title="Eliminar"
         >
           🗑
@@ -137,7 +137,7 @@ export default function Voley() {
       ? Math.round((cumplidos / planificadosMarcados.length) * 100)
       : null
 
-  if (cargando) return <p className="text-slate-500">Cargando…</p>
+  if (cargando) return <p className="text-zinc-400">Cargando…</p>
 
   return (
     <div>
@@ -145,20 +145,20 @@ export default function Voley() {
         <h1 className="text-2xl font-bold">Vóley 🏐</h1>
         <button
           onClick={abrirModal}
-          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+          className="btn-primario px-3 py-1.5 text-sm"
         >
           + Agregar evento
         </button>
       </div>
 
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
-      <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="mb-6 panel p-4">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
           Consistencia
         </p>
         {pctConsistencia === null ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-zinc-400">
             Cuando marques asistencia en eventos planificados, aquí verás cuántos cumpliste.
           </p>
         ) : (
@@ -166,7 +166,7 @@ export default function Voley() {
             Fuiste a{' '}
             <span
               className={`text-xl font-bold ${
-                pctConsistencia >= 80 ? 'text-green-600' : pctConsistencia >= 50 ? 'text-amber-600' : 'text-red-600'
+                pctConsistencia >= 80 ? 'text-emerald-400' : pctConsistencia >= 50 ? 'text-amber-400' : 'text-red-400'
               }`}
             >
               {cumplidos} de {planificadosMarcados.length}
@@ -178,7 +178,7 @@ export default function Voley() {
 
       <h2 className="mb-3 text-lg font-semibold">Próximos</h2>
       {proximos.length === 0 ? (
-        <p className="mb-6 rounded-xl bg-white p-6 text-center text-slate-500 shadow-sm">
+        <p className="mb-6 panel p-6 text-center text-zinc-400">
           Nada agendado. Agrega tu próximo entrenamiento o partido.
         </p>
       ) : (
@@ -207,7 +207,7 @@ export default function Voley() {
             <select
               value={form.tipo}
               onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             >
               {TIPOS_VOLLEY.map((t) => (
                 <option key={t.valor} value={t.valor}>
@@ -223,19 +223,19 @@ export default function Voley() {
               required
               value={form.fecha}
               onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">
-              Notas <span className="font-normal text-slate-400">(opcional)</span>
+              Notas <span className="font-normal text-zinc-500">(opcional)</span>
             </label>
             <input
               type="text"
               value={form.notas}
               onChange={(e) => setForm({ ...form, notas: e.target.value })}
               placeholder="Ej: cancha 2, llevar rodilleras"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
           <label className="flex items-center gap-2 text-sm">
@@ -243,14 +243,14 @@ export default function Voley() {
               type="checkbox"
               checked={form.planificado}
               onChange={(e) => setForm({ ...form, planificado: e.target.checked })}
-              className="h-4 w-4 accent-indigo-600"
+              className="h-4 w-4 accent-violet-500"
             />
             Planificado con anticipación
           </label>
           <button
             type="submit"
             disabled={guardando}
-            className="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="btn-primario w-full py-2"
           >
             {guardando ? 'Guardando…' : 'Guardar'}
           </button>

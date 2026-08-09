@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 
 const links = [
@@ -9,17 +9,33 @@ const links = [
   { to: '/voley', label: 'Vóley' },
 ]
 
+// Marca DUNI: gradiente violeta + punto cian, como el ícono de la app
+export function MarcaDuni({ className = 'text-xl' }) {
+  return (
+    <span
+      className={`font-display font-bold tracking-tight ${className}`}
+      style={{ fontFamily: 'var(--font-display)' }}
+    >
+      <span className="bg-gradient-to-r from-violet-300 to-violet-500 bg-clip-text text-transparent">
+        DUNI
+      </span>
+      <span className="text-cyan-400">.</span>
+    </span>
+  )
+}
+
 export default function Layout() {
   const { signOut } = useAuth()
+  const location = useLocation()
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-noche-950/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3">
-          <span className="text-lg font-bold text-indigo-600">DUNI</span>
+          <MarcaDuni />
           <button
             onClick={signOut}
-            className="rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100"
+            className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-white/10 hover:text-zinc-200"
           >
             Salir
           </button>
@@ -31,10 +47,10 @@ export default function Layout() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
+                `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-violet-600 text-white glow-activo'
+                    : 'text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
                 }`
               }
             >
@@ -43,7 +59,8 @@ export default function Layout() {
           ))}
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      {/* key por ruta: re-monta el contenido y dispara la animación de entrada */}
+      <main key={location.pathname} className="pagina-entrada mx-auto max-w-5xl px-4 py-6">
         <Outlet />
       </main>
     </div>

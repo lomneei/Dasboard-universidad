@@ -1,5 +1,91 @@
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/inter";
 @import "tailwindcss";
 
+/* ------------------------------------------------------------
+   DUNI - identidad visual
+   Dark futurista: fondo casi negro con tinte violeta, acento
+   violeta (#8b5cf6) + detalles cian, Space Grotesk para títulos.
+   ------------------------------------------------------------ */
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Escala de fondo "noche" */
+  --color-noche-950: #0b0a10;
+  --color-noche-900: #14121c;
+  --color-noche-800: #1c1926;
+  --color-noche-700: #2a2638;
+}
+
 body {
-  @apply bg-slate-100 text-slate-800 antialiased;
+  @apply bg-noche-950 text-zinc-200 antialiased;
+  /* Nebulosa sutil: dos halos de color muy tenues sobre el fondo */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139, 92, 246, 0.13), transparent),
+    radial-gradient(ellipse 40% 30% at 90% 110%, rgba(34, 211, 238, 0.05), transparent);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+@layer components {
+  /* Tarjeta base: borde apenas visible + sombra profunda */
+  .panel {
+    @apply rounded-2xl border border-white/[0.06] bg-noche-900/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)];
+  }
+
+  /* Input / select oscuro */
+  .campo {
+    @apply rounded-xl border border-white/10 bg-noche-800 px-3 py-2 text-zinc-100 placeholder-zinc-500 transition-colors focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500/40;
+  }
+
+  /* Botón principal con glow al hover */
+  .btn-primario {
+    @apply rounded-xl bg-violet-600 font-medium text-white transition-all duration-200 hover:bg-violet-500 hover:shadow-[0_0_22px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:hover:bg-violet-600 disabled:hover:shadow-none;
+  }
+
+  /* Botón secundario discreto */
+  .btn-fantasma {
+    @apply rounded-xl border border-white/10 text-zinc-300 transition-colors hover:border-violet-500/40 hover:bg-white/5;
+  }
+
+  /* Glow para elementos activos */
+  .glow-activo {
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.35);
+  }
+}
+
+/* Entrada suave de cada página */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pagina-entrada {
+  animation: aparecer 0.25s ease-out;
+}
+
+/* Selects nativos: opciones legibles en dark */
+select option {
+  background-color: #1c1926;
+  color: #e4e4e7;
+}
+
+/* Inputs date/time nativos: iconos claros */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
 }

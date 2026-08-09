@@ -90,7 +90,7 @@ export default function EvaluacionModal({
             disabled={Boolean(ramoFijo)}
             value={form.ramo_id}
             onChange={(e) => setForm({ ...form, ramo_id: e.target.value })}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none disabled:bg-slate-100"
+            className="campo w-full disabled:opacity-60"
           >
             <option value="" disabled>
               Selecciona un ramo
@@ -109,7 +109,7 @@ export default function EvaluacionModal({
             value={form.nombre}
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             placeholder="Ej: Interrogación 1"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+            className="campo w-full"
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -118,7 +118,7 @@ export default function EvaluacionModal({
             <select
               value={form.tipo}
               onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             >
               {TIPOS_EVALUACION.map((t) => (
                 <option key={t} value={t}>
@@ -133,7 +133,7 @@ export default function EvaluacionModal({
               type="date"
               value={form.fecha}
               onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
         </div>
@@ -149,12 +149,12 @@ export default function EvaluacionModal({
               value={form.peso_pct}
               onChange={(e) => setForm({ ...form, peso_pct: e.target.value })}
               placeholder="Ej: 25"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">
-              Nota <span className="font-normal text-slate-400">(si ya la rendiste)</span>
+              Nota <span className="font-normal text-zinc-500">(si ya la rendiste)</span>
             </label>
             <input
               type="number"
@@ -164,17 +164,17 @@ export default function EvaluacionModal({
               value={form.nota}
               onChange={(e) => setForm({ ...form, nota: e.target.value })}
               placeholder="1.0 - 7.0"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
         <button
           type="submit"
           disabled={guardando}
-          className="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="btn-primario w-full py-2"
         >
           {guardando ? 'Guardando…' : 'Guardar'}
         </button>

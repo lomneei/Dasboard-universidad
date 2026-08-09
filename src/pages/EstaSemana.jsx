@@ -56,7 +56,7 @@ export default function EstaSemana() {
     cargar()
   }, [])
 
-  if (cargando) return <p className="text-slate-500">Cargando tu semana…</p>
+  if (cargando) return <p className="text-zinc-400">Cargando tu semana…</p>
 
   // Los próximos 7 días con sus evaluaciones y clases
   const hoy = hoyInicioDia()
@@ -79,7 +79,7 @@ export default function EstaSemana() {
   return (
     <div>
       <h1 className="mb-1 text-2xl font-bold">Esta semana</h1>
-      <p className="mb-6 text-sm text-slate-500">
+      <p className="mb-6 text-sm text-zinc-400">
         {hoy.toLocaleDateString('es-CL', {
           weekday: 'long',
           day: 'numeric',
@@ -88,16 +88,16 @@ export default function EstaSemana() {
         })}
       </p>
 
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
       {ramos.length === 0 && (
-        <div className="mb-6 rounded-xl bg-indigo-50 p-6 text-center">
-          <p className="mb-2 font-medium text-indigo-900">
+        <div className="mb-6 rounded-xl bg-violet-500/10 p-6 text-center">
+          <p className="mb-2 font-medium text-violet-200">
             ¡Bienvenido! Empieza creando tus ramos.
           </p>
           <Link
             to="/ramos"
-            className="inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="inline-block btn-primario px-4 py-2 text-sm"
           >
             Ir a Ramos →
           </Link>
@@ -107,8 +107,8 @@ export default function EstaSemana() {
       <ChecklistDiario />
 
       {evalsUrgentes.length > 0 && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="mb-2 text-sm font-semibold text-amber-800">
+        <div className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4">
+          <p className="mb-2 text-sm font-semibold text-amber-300">
             ⚠ {evalsUrgentes.length}{' '}
             {evalsUrgentes.length === 1
               ? 'evaluación próxima esta semana'
@@ -118,7 +118,7 @@ export default function EstaSemana() {
             {evalsUrgentes.map((e) => {
               const dias = diasHasta(e.fecha)
               return (
-                <li key={e.id} className="text-sm text-amber-900">
+                <li key={e.id} className="text-sm text-amber-200">
                   <span className="font-medium">{e.nombre}</span> ({e.ramos?.sigla}) —{' '}
                   {dias === 0 ? '¡hoy!' : dias === 1 ? 'mañana' : `en ${dias} días`} ·{' '}
                   {e.peso_pct}%
@@ -135,11 +135,11 @@ export default function EstaSemana() {
           if (sinContenido && dia.indice > 1) return null
 
           return (
-            <section key={dia.indice} className="rounded-xl bg-white p-4 shadow-sm">
+            <section key={dia.indice} className="panel p-4">
               <h2 className="mb-3 font-semibold capitalize">
                 {etiquetaDia(dia.fecha, dia.indice)}
                 {dia.indice <= 1 && (
-                  <span className="ml-2 text-sm font-normal text-slate-400">
+                  <span className="ml-2 text-sm font-normal text-zinc-500">
                     {dia.fecha.toLocaleDateString('es-CL', {
                       weekday: 'long',
                       day: 'numeric',
@@ -150,21 +150,21 @@ export default function EstaSemana() {
               </h2>
 
               {sinContenido ? (
-                <p className="text-sm text-slate-400">Nada agendado. 🎉</p>
+                <p className="text-sm text-zinc-500">Nada agendado. 🎉</p>
               ) : (
                 <div className="space-y-2">
                   {dia.evaluaciones.map((e) => (
                     <div
                       key={e.id}
-                      className="flex items-center gap-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2"
+                      className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2"
                     >
                       <span className="text-lg">📝</span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-red-900">
+                        <p className="text-sm font-medium text-red-200">
                           {e.nombre}{' '}
                           <span className="font-normal">({e.ramos?.sigla})</span>
                         </p>
-                        <p className="text-xs text-red-700">
+                        <p className="text-xs text-red-300">
                           {e.tipo} · {e.peso_pct}%
                           {e.nota !== null && ` · nota: ${formatearNota(e.nota)}`}
                         </p>
@@ -174,7 +174,7 @@ export default function EstaSemana() {
                   {dia.bloques.map((b) => (
                     <div
                       key={b.id}
-                      className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2"
+                      className="flex items-center gap-3 rounded-lg bg-white/[0.04] px-3 py-2"
                     >
                       <div
                         className="h-8 w-1.5 shrink-0 rounded-full"
@@ -184,12 +184,12 @@ export default function EstaSemana() {
                         <p className="truncate text-sm font-medium">
                           {b.ramos?.nombre}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-zinc-400">
                           {b.tipo}
                           {b.sala ? ` · ${b.sala}` : ''}
                         </p>
                       </div>
-                      <span className="shrink-0 text-sm text-slate-500">
+                      <span className="shrink-0 text-sm text-zinc-400">
                         {formatearHora(b.hora_inicio)}–{formatearHora(b.hora_fin)}
                       </span>
                     </div>

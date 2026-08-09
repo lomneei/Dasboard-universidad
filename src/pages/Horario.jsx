@@ -116,7 +116,7 @@ export default function Horario() {
     cargar()
   }
 
-  if (cargando) return <p className="text-slate-500">Cargando horario…</p>
+  if (cargando) return <p className="text-zinc-400">Cargando horario…</p>
 
   const horas = []
   for (let h = HORA_MIN; h < HORA_MAX; h++) horas.push(h)
@@ -129,20 +129,20 @@ export default function Horario() {
         <button
           onClick={abrirCrear}
           disabled={ramos.length === 0}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="btn-primario px-4 py-2 text-sm disabled:opacity-50"
         >
           + Nuevo bloque
         </button>
       </div>
 
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
       {ramos.length === 0 && (
-        <p className="mb-4 rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-700">
+        <p className="mb-4 rounded-lg bg-amber-500/10 px-4 py-2 text-sm text-amber-300">
           Primero crea tus ramos para poder armar el horario.
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-xl bg-white p-4 shadow-sm">
+      <div className="overflow-x-auto panel p-4">
         <div className="min-w-[640px]">
           {/* Encabezado de días */}
           <div className="grid grid-cols-[3rem_repeat(5,1fr)] gap-1">
@@ -150,7 +150,7 @@ export default function Horario() {
             {DIAS_SEMANA.map((d) => (
               <div
                 key={d.valor}
-                className="pb-2 text-center text-sm font-semibold text-slate-600"
+                className="pb-2 text-center text-sm font-semibold text-zinc-300"
               >
                 {d.nombre}
               </div>
@@ -164,7 +164,7 @@ export default function Horario() {
               {horas.map((h) => (
                 <div
                   key={h}
-                  className="absolute right-2 -translate-y-1/2 text-xs text-slate-400"
+                  className="absolute right-2 -translate-y-1/2 text-xs text-zinc-500"
                   style={{ top: (h - HORA_MIN) * ALTO_HORA }}
                 >
                   {String(h).padStart(2, '0')}:00
@@ -176,13 +176,13 @@ export default function Horario() {
             {DIAS_SEMANA.map((d) => (
               <div
                 key={d.valor}
-                className="relative rounded-lg bg-slate-50"
+                className="relative rounded-lg bg-white/[0.04]"
                 style={{ height: altoGrilla }}
               >
                 {horas.map((h) => (
                   <div
                     key={h}
-                    className="absolute inset-x-0 border-t border-slate-200"
+                    className="absolute inset-x-0 border-t border-white/10"
                     style={{ top: (h - HORA_MIN) * ALTO_HORA }}
                   />
                 ))}
@@ -236,7 +236,7 @@ export default function Horario() {
               required
               value={form.ramo_id}
               onChange={(e) => setForm({ ...form, ramo_id: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             >
               <option value="" disabled>
                 Selecciona un ramo
@@ -254,7 +254,7 @@ export default function Horario() {
               <select
                 value={form.tipo}
                 onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+                className="campo w-full"
               >
                 {TIPOS_BLOQUE.map((t) => (
                   <option key={t} value={t}>
@@ -268,7 +268,7 @@ export default function Horario() {
               <select
                 value={form.dia_semana}
                 onChange={(e) => setForm({ ...form, dia_semana: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+                className="campo w-full"
               >
                 {DIAS_SEMANA.map((d) => (
                   <option key={d.valor} value={d.valor}>
@@ -286,7 +286,7 @@ export default function Horario() {
                 required
                 value={form.hora_inicio}
                 onChange={(e) => setForm({ ...form, hora_inicio: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+                className="campo w-full"
               />
             </div>
             <div>
@@ -296,19 +296,19 @@ export default function Horario() {
                 required
                 value={form.hora_fin}
                 onChange={(e) => setForm({ ...form, hora_fin: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+                className="campo w-full"
               />
             </div>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">
-              Sala <span className="font-normal text-slate-400">(opcional)</span>
+              Sala <span className="font-normal text-zinc-500">(opcional)</span>
             </label>
             <input
               value={form.sala}
               onChange={(e) => setForm({ ...form, sala: e.target.value })}
               placeholder="Ej: A2, Lab 3"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
           <div className="flex gap-2">
@@ -316,7 +316,7 @@ export default function Horario() {
               <button
                 type="button"
                 onClick={eliminar}
-                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                className="rounded-lg border border-red-500/30 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10"
               >
                 Eliminar
               </button>
@@ -324,7 +324,7 @@ export default function Horario() {
             <button
               type="submit"
               disabled={guardando}
-              className="flex-1 rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="btn-primario flex-1 py-2"
             >
               {guardando ? 'Guardando…' : 'Guardar'}
             </button>

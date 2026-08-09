@@ -42,9 +42,9 @@ export const TIPOS_ASISTENCIA = [
 ]
 
 export const CATEGORIAS_CHECKLIST = [
-  { valor: 'academico', nombre: 'Académico', clases: 'bg-indigo-100 text-indigo-700' },
-  { valor: 'negocio', nombre: 'Negocio', clases: 'bg-emerald-100 text-emerald-700' },
-  { valor: 'personal', nombre: 'Personal', clases: 'bg-amber-100 text-amber-700' },
+  { valor: 'academico', nombre: 'Académico', clases: 'bg-violet-500/15 text-violet-300' },
+  { valor: 'negocio', nombre: 'Negocio', clases: 'bg-emerald-500/15 text-emerald-300' },
+  { valor: 'personal', nombre: 'Personal', clases: 'bg-amber-500/15 text-amber-300' },
 ]
 
 export const TIPOS_VOLLEY = [

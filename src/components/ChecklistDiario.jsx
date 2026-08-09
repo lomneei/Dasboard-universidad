@@ -66,13 +66,13 @@ export default function ChecklistDiario() {
   const completados = items.filter((i) => i.completado).length
 
   return (
-    <section className="mb-6 rounded-xl bg-white p-4 shadow-sm">
+    <section className="mb-6 panel p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-semibold">Checklist de hoy</h2>
         {items.length > 0 && (
           <span
             className={`text-sm font-medium ${
-              completados === items.length ? 'text-green-600' : 'text-slate-400'
+              completados === items.length ? 'text-emerald-400' : 'text-zinc-500'
             }`}
           >
             {completados}/{items.length}
@@ -80,7 +80,7 @@ export default function ChecklistDiario() {
         )}
       </div>
 
-      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
 
       <form onSubmit={agregar} className="mb-3 flex gap-2">
         <input
@@ -88,12 +88,12 @@ export default function ChecklistDiario() {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           placeholder="Agregar tarea…"
-          className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+          className="campo min-w-0 flex-1 text-sm"
         />
         <select
           value={categoria}
           onChange={(e) => setCategoria(e.target.value)}
-          className="rounded-lg border border-slate-300 px-2 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+          className="campo px-2 text-sm"
         >
           {CATEGORIAS_CHECKLIST.map((c) => (
             <option key={c.valor} value={c.valor}>
@@ -104,16 +104,16 @@ export default function ChecklistDiario() {
         <button
           type="submit"
           disabled={guardando || !texto.trim()}
-          className="shrink-0 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="btn-primario shrink-0 px-3 py-2 text-sm"
         >
           +
         </button>
       </form>
 
       {cargando ? (
-        <p className="text-sm text-slate-500">Cargando…</p>
+        <p className="text-sm text-zinc-400">Cargando…</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-zinc-500">
           Sin tareas para hoy. Anota lo primero que quieras sacar adelante.
         </p>
       ) : (
@@ -123,31 +123,31 @@ export default function ChecklistDiario() {
             return (
               <li
                 key={item.id}
-                className="group flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-slate-50"
+                className="group flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/[0.04]"
               >
                 <input
                   type="checkbox"
                   checked={item.completado}
                   onChange={() => alternar(item)}
-                  className="h-4 w-4 shrink-0 accent-indigo-600"
+                  className="h-4 w-4 shrink-0 accent-violet-500"
                 />
                 <span
                   className={`min-w-0 flex-1 text-sm ${
-                    item.completado ? 'text-slate-400 line-through' : ''
+                    item.completado ? 'text-zinc-500 line-through' : ''
                   }`}
                 >
                   {item.texto}
                 </span>
                 <span
                   className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    cat?.clases ?? 'bg-slate-100 text-slate-600'
+                    cat?.clases ?? 'bg-white/10 text-zinc-300'
                   }`}
                 >
                   {cat?.nombre ?? item.categoria}
                 </span>
                 <button
                   onClick={() => eliminar(item)}
-                  className="shrink-0 rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-600"
+                  className="shrink-0 rounded p-1 text-zinc-600 hover:bg-red-500/10 hover:text-red-400"
                   title="Eliminar"
                 >
                   🗑

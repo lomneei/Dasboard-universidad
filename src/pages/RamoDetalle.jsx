@@ -13,18 +13,18 @@ function TarjetaNecesaria({ titulo, objetivo, necesaria, pesoPendiente }) {
 
   let contenido
   if (pesoPendiente <= 0) {
-    contenido = <p className="text-sm text-slate-500">No quedan evaluaciones pendientes.</p>
+    contenido = <p className="text-sm text-zinc-400">No quedan evaluaciones pendientes.</p>
   } else if (!info) {
-    contenido = <p className="text-sm text-slate-500">—</p>
+    contenido = <p className="text-sm text-zinc-400">—</p>
   } else if (info.estado === 'asegurado') {
     contenido = (
-      <p className="text-sm font-medium text-green-700">
+      <p className="text-sm font-medium text-emerald-300">
         ¡Ya lo tienes asegurado! Incluso con un 1,0 en lo pendiente llegas a {formatearNota(objetivo)}.
       </p>
     )
   } else if (info.estado === 'imposible') {
     contenido = (
-      <p className="text-sm font-medium text-red-700">
+      <p className="text-sm font-medium text-red-300">
         Necesitarías un {formatearNota(info.valor, 2)} — sobre 7,0, ya no es alcanzable solo con lo pendiente.
       </p>
     )
@@ -32,7 +32,7 @@ function TarjetaNecesaria({ titulo, objetivo, necesaria, pesoPendiente }) {
     contenido = (
       <p className="text-sm">
         Necesitas promediar{' '}
-        <span className="text-xl font-bold text-indigo-700">
+        <span className="text-xl font-bold text-violet-300">
           {formatearNota(info.valor, 2)}
         </span>{' '}
         en el {pesoPendiente}% pendiente.
@@ -41,8 +41,8 @@ function TarjetaNecesaria({ titulo, objetivo, necesaria, pesoPendiente }) {
   }
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm">
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <div className="panel p-4">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
         {titulo} ({formatearNota(objetivo)})
       </p>
       {contenido}
@@ -126,14 +126,14 @@ export default function RamoDetalle() {
     else cargar()
   }
 
-  if (cargando) return <p className="text-slate-500">Cargando…</p>
-  if (error && !ramo) return <p className="text-red-600">{error}</p>
+  if (cargando) return <p className="text-zinc-400">Cargando…</p>
+  if (error && !ramo) return <p className="text-red-400">{error}</p>
 
   const analisis = analizarRamo(evaluaciones, config)
 
   return (
     <div>
-      <Link to="/ramos" className="text-sm text-indigo-600 hover:underline">
+      <Link to="/ramos" className="text-sm text-violet-400 hover:underline">
         ← Volver a ramos
       </Link>
 
@@ -144,7 +144,7 @@ export default function RamoDetalle() {
             style={{ backgroundColor: ramo.color }}
           />
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
               {ramo.sigla}
             </p>
             <h1 className="text-2xl font-bold leading-tight">{ramo.nombre}</h1>
@@ -152,34 +152,34 @@ export default function RamoDetalle() {
         </div>
         <button
           onClick={abrirConfig}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-white"
+          className="btn-fantasma px-3 py-1.5 text-sm"
         >
           ⚙ Config de notas
         </button>
       </div>
 
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
       {/* Resumen / calculadora */}
       <div className="mb-4 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="panel p-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
             Promedio actual
           </p>
           <p className="text-3xl font-bold">
             <span
               className={
                 analisis.promedioActual === null
-                  ? 'text-slate-400'
+                  ? 'text-zinc-500'
                   : analisis.promedioActual >= analisis.notaAprobacion
-                    ? 'text-green-600'
-                    : 'text-red-600'
+                    ? 'text-emerald-400'
+                    : 'text-red-400'
               }
             >
               {formatearNota(analisis.promedioActual)}
             </span>
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-zinc-400">
             {analisis.pesoRendido}% del ramo rendido
           </p>
         </div>
@@ -197,14 +197,14 @@ export default function RamoDetalle() {
             pesoPendiente={analisis.pesoPendiente}
           />
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-400">
+          <div className="rounded-xl border border-dashed border-white/10 p-4 text-sm text-zinc-500">
             Sin nota de eximición configurada. Agrégala en “Config de notas” para simularla.
           </div>
         )}
       </div>
 
       {analisis.pesosIncompletos && analisis.pesoTotal > 0 && (
-        <p className="mb-4 rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-700">
+        <p className="mb-4 rounded-lg bg-amber-500/10 px-4 py-2 text-sm text-amber-300">
           ⚠ Los pesos registrados suman {analisis.pesoTotal}% (no 100%). Los cálculos
           se hacen sobre ese total, pero conviene revisar.
         </p>
@@ -214,8 +214,8 @@ export default function RamoDetalle() {
         <p
           className={`mb-4 rounded-lg px-4 py-2 text-sm font-medium ${
             analisis.promedioActual >= analisis.notaAprobacion
-              ? 'bg-green-50 text-green-700'
-              : 'bg-red-50 text-red-700'
+              ? 'bg-emerald-500/10 text-emerald-300'
+              : 'bg-red-500/10 text-red-300'
           }`}
         >
           {analisis.promedioActual >= analisis.notaAprobacion
@@ -232,14 +232,14 @@ export default function RamoDetalle() {
             setEditandoEval(null)
             setModalEval(true)
           }}
-          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+          className="btn-primario px-3 py-1.5 text-sm"
         >
           + Agregar
         </button>
       </div>
 
       {evaluaciones.length === 0 ? (
-        <p className="rounded-xl bg-white p-6 text-center text-slate-500 shadow-sm">
+        <p className="panel p-6 text-center text-zinc-400">
           Sin evaluaciones aún. Agrega la primera para activar la calculadora.
         </p>
       ) : (
@@ -247,11 +247,11 @@ export default function RamoDetalle() {
           {evaluaciones.map((ev) => (
             <div
               key={ev.id}
-              className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"
+              className="flex items-center gap-3 panel p-4"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{ev.nombre}</p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-zinc-400">
                   {ev.tipo} · {ev.peso_pct}%
                   {ev.fecha ? ` · ${formatearFecha(ev.fecha)}` : ''}
                 </p>
@@ -259,10 +259,10 @@ export default function RamoDetalle() {
               <span
                 className={`rounded-lg px-2.5 py-1 text-sm font-bold ${
                   ev.nota === null
-                    ? 'bg-slate-100 text-slate-400'
+                    ? 'bg-white/10 text-zinc-500'
                     : Number(ev.nota) >= analisis.notaAprobacion
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
+                      ? 'bg-emerald-500/15 text-emerald-300'
+                      : 'bg-red-500/15 text-red-300'
                 }`}
               >
                 {ev.nota === null ? 'Pendiente' : formatearNota(ev.nota)}
@@ -273,14 +273,14 @@ export default function RamoDetalle() {
                     setEditandoEval(ev)
                     setModalEval(true)
                   }}
-                  className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  className="rounded p-1.5 text-zinc-500 hover:bg-white/10 hover:text-zinc-300"
                   title="Editar"
                 >
                   ✎
                 </button>
                 <button
                   onClick={() => eliminarEval(ev)}
-                  className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded p-1.5 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
                   title="Eliminar"
                 >
                   🗑
@@ -320,13 +320,13 @@ export default function RamoDetalle() {
               onChange={(e) =>
                 setFormConfig({ ...formConfig, nota_aprobacion: e.target.value })
               }
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">
               Nota de eximición{' '}
-              <span className="font-normal text-slate-400">(opcional)</span>
+              <span className="font-normal text-zinc-500">(opcional)</span>
             </label>
             <input
               type="number"
@@ -338,13 +338,13 @@ export default function RamoDetalle() {
                 setFormConfig({ ...formConfig, nota_eximicion: e.target.value })
               }
               placeholder="Ej: 5.5 — deja vacío si no aplica"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+              className="campo w-full"
             />
           </div>
           <button
             type="submit"
             disabled={guardandoConfig}
-            className="w-full rounded-lg bg-indigo-600 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="btn-primario w-full py-2"
           >
             {guardandoConfig ? 'Guardando…' : 'Guardar'}
           </button>

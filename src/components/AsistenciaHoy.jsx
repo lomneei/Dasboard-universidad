@@ -54,13 +54,13 @@ export default function AsistenciaHoy({ ramoId }) {
   return (
     <div className="mt-8">
       <h2 className="mb-3 text-lg font-semibold">Asistencia</h2>
-      <div className="rounded-xl bg-white p-4 shadow-sm">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="panel p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
           ¿Fuiste hoy?
         </p>
-        {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+        {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
         {cargando ? (
-          <p className="text-sm text-slate-500">Cargando…</p>
+          <p className="text-sm text-zinc-400">Cargando…</p>
         ) : (
           <div className="space-y-2">
             {TIPOS_ASISTENCIA.map(({ valor, nombre }) => {
@@ -68,7 +68,7 @@ export default function AsistenciaHoy({ ramoId }) {
               return (
                 <div
                   key={valor}
-                  className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.04] px-3 py-2"
                 >
                   <span className="text-sm font-medium">{nombre}</span>
                   <div className="flex gap-1">
@@ -76,8 +76,8 @@ export default function AsistenciaHoy({ ramoId }) {
                       onClick={() => marcar(valor, true)}
                       className={`rounded-lg px-3 py-1 text-sm font-medium ${
                         registro?.asistio === true
-                          ? 'bg-green-600 text-white'
-                          : 'bg-white text-slate-500 hover:bg-green-50'
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-white/10 text-zinc-400 hover:bg-emerald-500/20'
                       }`}
                     >
                       ✓ Fui
@@ -87,7 +87,7 @@ export default function AsistenciaHoy({ ramoId }) {
                       className={`rounded-lg px-3 py-1 text-sm font-medium ${
                         registro?.asistio === false
                           ? 'bg-red-600 text-white'
-                          : 'bg-white text-slate-500 hover:bg-red-50'
+                          : 'bg-white/10 text-zinc-400 hover:bg-red-500/20'
                       }`}
                     >
                       ✗ No fui
@@ -98,7 +98,7 @@ export default function AsistenciaHoy({ ramoId }) {
             })}
           </div>
         )}
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-zinc-400">
           {pct === null
             ? 'Sin registros aún. Marca tu asistencia de hoy para empezar el historial.'
             : `Historial: fuiste a ${asistidas} de ${total} ${
