@@ -133,8 +133,8 @@ export default function RamoDetalle() {
 
   return (
     <div>
-      <Link to="/ramos" className="text-sm text-violet-400 hover:underline">
-        ← Volver a ramos
+      <Link to="/horario" className="text-sm text-violet-400 hover:underline">
+        ← Volver al horario
       </Link>
 
       <div className="mt-3 mb-6 flex flex-wrap items-center justify-between gap-3">

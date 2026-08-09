@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { DIAS_SEMANA, TIPOS_BLOQUE, HORA_MIN, HORA_MAX } from '../lib/constantes'
 import { formatearHora, horaADecimal } from '../lib/fechas'
 import Modal from '../components/Modal.jsx'
+import GestionRamos from '../components/GestionRamos.jsx'
 
 const ALTO_HORA = 52 // px por hora en la grilla
 const FORM_VACIO = {
@@ -20,6 +21,7 @@ export default function Horario() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [modalRamos, setModalRamos] = useState(false)
   const [editando, setEditando] = useState(null)
   const [form, setForm] = useState(FORM_VACIO)
   const [guardando, setGuardando] = useState(false)
@@ -124,21 +126,29 @@ export default function Horario() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">Horario</h1>
-        <button
-          onClick={abrirCrear}
-          disabled={ramos.length === 0}
-          className="btn-primario px-4 py-2 text-sm disabled:opacity-50"
-        >
-          + Nuevo bloque
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setModalRamos(true)}
+            className="btn-fantasma px-4 py-2 text-sm"
+          >
+            📚 Gestionar ramos
+          </button>
+          <button
+            onClick={abrirCrear}
+            disabled={ramos.length === 0}
+            className="btn-primario px-4 py-2 text-sm disabled:opacity-50"
+          >
+            + Nuevo bloque
+          </button>
+        </div>
       </div>
 
       {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
       {ramos.length === 0 && (
         <p className="mb-4 rounded-lg bg-amber-500/10 px-4 py-2 text-sm text-amber-300">
-          Primero crea tus ramos para poder armar el horario.
+          Primero crea tus ramos (botón “Gestionar ramos”) para poder armar el horario.
         </p>
       )}
 
@@ -331,6 +341,13 @@ export default function Horario() {
           </div>
         </form>
       </Modal>
+
+      <GestionRamos
+        abierto={modalRamos}
+        onCerrar={() => setModalRamos(false)}
+        ramos={ramos}
+        onCambio={cargar}
+      />
     </div>
   )
 }
