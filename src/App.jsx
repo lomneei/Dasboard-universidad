@@ -7,6 +7,7 @@ import Ramos from './pages/Ramos.jsx'
 import RamoDetalle from './pages/RamoDetalle.jsx'
 import Horario from './pages/Horario.jsx'
 import Evaluaciones from './pages/Evaluaciones.jsx'
+import Voley from './pages/Voley.jsx'
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/ramos/:id" element={<RamoDetalle />} />
         <Route path="/horario" element={<Horario />} />
         <Route path="/evaluaciones" element={<Evaluaciones />} />
+        <Route path="/voley" element={<Voley />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

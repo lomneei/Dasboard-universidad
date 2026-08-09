@@ -6,6 +6,7 @@ const links = [
   { to: '/ramos', label: 'Ramos' },
   { to: '/horario', label: 'Horario' },
   { to: '/evaluaciones', label: 'Evaluaciones' },
+  { to: '/voley', label: 'Vóley' },
 ]
 
 export default function Layout() {
