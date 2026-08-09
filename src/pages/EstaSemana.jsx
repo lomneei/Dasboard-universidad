@@ -3,23 +3,18 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import {
   diasHasta,
+  fechaISO,
   formatearHora,
   hoyInicioDia,
   diaSemanaApp,
 } from '../lib/fechas'
 import { formatearNota } from '../lib/notas'
+import ChecklistDiario from '../components/ChecklistDiario.jsx'
 
 function etiquetaDia(fecha, indice) {
   if (indice === 0) return 'Hoy'
   if (indice === 1) return 'Mañana'
   return fecha.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })
-}
-
-function fechaISO(date) {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
 }
 
 export default function EstaSemana() {
@@ -108,6 +103,8 @@ export default function EstaSemana() {
           </Link>
         </div>
       )}
+
+      <ChecklistDiario />
 
       {evalsUrgentes.length > 0 && (
         <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
