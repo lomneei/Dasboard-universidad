@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Layout from './components/Layout.jsx'
 import Login from './pages/Login.jsx'
-import EstaSemana from './pages/EstaSemana.jsx'
+import Inicio from './pages/Inicio.jsx'
 import Tareas from './pages/Tareas.jsx'
 import Calendario from './pages/Calendario.jsx'
 import RamoDetalle from './pages/RamoDetalle.jsx'
@@ -20,7 +20,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<EstaSemana />} />
+        <Route path="/" element={<Inicio />} />
         <Route path="/tareas" element={<Tareas />} />
         <Route path="/calendario" element={<Calendario />} />
         <Route path="/horario" element={<Horario />} />

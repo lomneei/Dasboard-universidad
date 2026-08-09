@@ -47,6 +47,21 @@ export const CATEGORIAS_CHECKLIST = [
   { valor: 'personal', nombre: 'Personal', clases: 'bg-amber-500/15 text-amber-300' },
 ]
 
+// Iconos consistentes por tipo de evento (se usan en Inicio, Calendario, etc.)
+export const ICONOS = {
+  evaluacion: '📝',
+  tarea: '✅',
+  voley: '🏐',
+}
+
+export const ICONOS_BLOQUE = {
+  Cátedra: '📚',
+  Ayudantía: '🧑‍🏫',
+  Laboratorio: '🧪',
+  Taller: '🛠️',
+  Otro: '📌',
+}
+
 export const TIPOS_VOLLEY = [
   { valor: 'entrenamiento', nombre: 'Entrenamiento', emoji: '🏐' },
   { valor: 'partido', nombre: 'Partido', emoji: '🆚' },
