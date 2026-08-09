@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
+import TareaRapida from './TareaRapida.jsx'
 
 // Nav: 2 secciones a cada lado de INICIO (que va destacado al centro)
 const linksIzquierda = [
@@ -83,9 +84,10 @@ export default function Layout() {
         </nav>
       </header>
       {/* key por ruta: re-monta el contenido y dispara la animación de entrada */}
-      <main key={location.pathname} className="pagina-entrada mx-auto max-w-5xl px-4 py-6">
+      <main key={location.pathname} className="pagina-entrada mx-auto max-w-5xl px-4 py-6 pb-24">
         <Outlet />
       </main>
+      <TareaRapida />
     </div>
   )
 }
