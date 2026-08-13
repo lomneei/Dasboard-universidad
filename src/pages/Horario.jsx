@@ -213,17 +213,16 @@ export default function Horario() {
                           height: alto,
                           backgroundColor: b.ramos?.color ?? '#64748b',
                         }}
-                        title={`${b.ramos?.nombre} · ${b.tipo}${b.sala ? ` · ${b.sala}` : ''}`}
+                        title={`${b.ramos?.nombre} · ${b.tipo} · ${formatearHora(b.hora_inicio)}–${formatearHora(b.hora_fin)}${b.sala ? ` · ${b.sala}` : ' · sala por confirmar'}`}
                       >
-                        <p className="truncate text-xs font-bold leading-tight">
-                          {b.ramos?.sigla}
+                        {/* Nombre de la actividad (no la sigla); en no-cátedras
+                            se antepone el tipo, como "Ayudantía Dinámica" */}
+                        <p className="line-clamp-2 text-[11px] font-bold leading-tight">
+                          {b.tipo !== 'Cátedra' ? `${b.tipo} ` : ''}
+                          {b.ramos?.nombre}
                         </p>
-                        <p className="truncate text-[10px] leading-tight opacity-90">
-                          {b.tipo}
-                          {b.sala ? ` · ${b.sala}` : ''}
-                        </p>
-                        <p className="truncate text-[10px] leading-tight opacity-75">
-                          {formatearHora(b.hora_inicio)}–{formatearHora(b.hora_fin)}
+                        <p className="truncate text-[10px] leading-tight opacity-80">
+                          {b.sala || <span className="opacity-60">sala por confirmar</span>}
                         </p>
                       </button>
                     )
