@@ -4,6 +4,13 @@ import { diasHasta, formatearFecha, hoyISO, fechaISO } from '../lib/fechas'
 import { formatearNota } from '../lib/notas'
 import { DIAS_SEMANA } from '../lib/constantes'
 import EvaluacionModal from '../components/EvaluacionModal.jsx'
+import {
+  gcalConfigurado,
+  gcalConectado,
+  conectarGcal,
+  desconectarGcal,
+  listarEventosGcal,
+} from '../lib/gcal'
 
 // Etiqueta de urgencia para evaluaciones pendientes
 function BadgeUrgencia({ fecha, nota }) {
@@ -22,13 +29,9 @@ function BadgeUrgencia({ fecha, nota }) {
   )
 }
 
-// Calendario mensual: marca los días que tienen evaluaciones
-function VistaMensual({ evaluaciones }) {
-  const [mes, setMes] = useState(() => {
-    const d = new Date()
-    return new Date(d.getFullYear(), d.getMonth(), 1)
-  })
-
+// Calendario mensual: marca los días con evaluaciones (punto del color
+// del ramo) y con eventos de Google Calendar (punto cian)
+function VistaMensual({ evaluaciones, eventosGcal, mes, onCambiarMes }) {
   const porFecha = useMemo(() => {
     const mapa = new Map()
     for (const ev of evaluaciones) {
@@ -40,6 +43,16 @@ function VistaMensual({ evaluaciones }) {
     return mapa
   }, [evaluaciones])
 
+  const gcalPorFecha = useMemo(() => {
+    const mapa = new Map()
+    for (const e of eventosGcal) {
+      const lista = mapa.get(e.fecha) ?? []
+      lista.push(e)
+      mapa.set(e.fecha, lista)
+    }
+    return mapa
+  }, [eventosGcal])
+
   const hoy = hoyISO()
   const offset = (mes.getDay() + 6) % 7 // lunes = 0
   const diasEnMes = new Date(mes.getFullYear(), mes.getMonth() + 1, 0).getDate()
@@ -49,7 +62,7 @@ function VistaMensual({ evaluaciones }) {
     celdas.push(new Date(mes.getFullYear(), mes.getMonth(), d))
 
   const cambiarMes = (delta) =>
-    setMes(new Date(mes.getFullYear(), mes.getMonth() + delta, 1))
+    onCambiarMes(new Date(mes.getFullYear(), mes.getMonth() + delta, 1))
 
   return (
     <div className="panel p-4">
@@ -86,25 +99,26 @@ function VistaMensual({ evaluaciones }) {
           if (!fecha) return <div key={`v${i}`} />
           const iso = fechaISO(fecha)
           const evs = porFecha.get(iso) ?? []
+          const gevs = gcalPorFecha.get(iso) ?? []
           const esHoy = iso === hoy
+          const tooltip = [
+            ...evs.map((e) => `📝 ${e.nombre} (${e.ramos?.sigla})`),
+            ...gevs.map((g) => `📆 ${g.titulo}${g.hora ? ` · ${g.hora}` : ''}`),
+          ].join('\n')
           return (
             <div
               key={iso}
-              title={
-                evs.length > 0
-                  ? evs.map((e) => `${e.nombre} (${e.ramos?.sigla})`).join('\n')
-                  : undefined
-              }
+              title={tooltip || undefined}
               className={`flex min-h-11 flex-col items-center rounded-lg py-1 text-sm transition-colors ${
                 esHoy
                   ? 'bg-violet-600/25 font-bold text-violet-200 ring-1 ring-violet-500/50'
-                  : evs.length > 0
+                  : evs.length > 0 || gevs.length > 0
                     ? 'bg-white/[0.06] hover:bg-white/10'
                     : 'text-zinc-400'
               }`}
             >
               {fecha.getDate()}
-              {evs.length > 0 && (
+              {(evs.length > 0 || gevs.length > 0) && (
                 <div className="mt-0.5 flex flex-wrap justify-center gap-0.5">
                   {evs.slice(0, 3).map((e) => (
                     <span
@@ -117,6 +131,12 @@ function VistaMensual({ evaluaciones }) {
                     <span className="text-[8px] leading-none text-zinc-400">
                       +{evs.length - 3}
                     </span>
+                  )}
+                  {gevs.length > 0 && (
+                    <span
+                      className="h-1.5 w-1.5 rounded-full bg-cyan-400"
+                      title="Eventos de Google Calendar"
+                    />
                   )}
                 </div>
               )}
@@ -135,6 +155,58 @@ export default function Calendario() {
   const [error, setError] = useState(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const [editando, setEditando] = useState(null)
+
+  // Mes visible en la vista mensual (se comparte con Google Calendar)
+  const [mes, setMes] = useState(() => {
+    const d = new Date()
+    return new Date(d.getFullYear(), d.getMonth(), 1)
+  })
+  const [gcal, setGcal] = useState({
+    conectado: gcalConectado(),
+    eventos: [],
+    cargando: false,
+    error: null,
+  })
+
+  const cargarGcal = async (mesVisible) => {
+    if (!gcalConfigurado()) return
+    if (!gcalConectado()) {
+      setGcal((g) => ({ ...g, conectado: false, eventos: [] }))
+      return
+    }
+    setGcal((g) => ({ ...g, conectado: true, cargando: true, error: null }))
+    try {
+      const desde = new Date(mesVisible.getFullYear(), mesVisible.getMonth(), 1)
+      const hasta = new Date(mesVisible.getFullYear(), mesVisible.getMonth() + 1, 1)
+      const eventos = await listarEventosGcal(desde, hasta)
+      setGcal({ conectado: true, eventos, cargando: false, error: null })
+    } catch (e) {
+      if (e.message === 'gcal-desconectado') {
+        // token vencido: volver a mostrar el botón de conectar
+        setGcal({ conectado: false, eventos: [], cargando: false, error: null })
+      } else {
+        setGcal((g) => ({ ...g, cargando: false, error: e.message }))
+      }
+    }
+  }
+
+  useEffect(() => {
+    cargarGcal(mes)
+  }, [mes])
+
+  const conectar = async () => {
+    try {
+      await conectarGcal()
+      cargarGcal(mes)
+    } catch (e) {
+      setGcal((g) => ({ ...g, error: e.message }))
+    }
+  }
+
+  const desconectar = () => {
+    desconectarGcal()
+    setGcal({ conectado: false, eventos: [], cargando: false, error: null })
+  }
 
   const cargar = async () => {
     const [resEvals, resRamos] = await Promise.all([
@@ -241,21 +313,85 @@ export default function Calendario() {
       {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
       <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
-        <VistaMensual evaluaciones={evaluaciones} />
+        <VistaMensual
+          evaluaciones={evaluaciones}
+          eventosGcal={gcal.eventos}
+          mes={mes}
+          onCambiarMes={setMes}
+        />
 
-        {/* Placeholder para la futura integración con Google Calendar */}
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 p-6 text-center">
-          <span className="mb-2 text-3xl">📆</span>
-          <p className="font-semibold text-zinc-300">
-            Google Calendar{' '}
-            <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-300">
-              próximamente
-            </span>
-          </p>
-          <p className="mt-1 max-w-xs text-sm text-zinc-500">
-            Aquí se sincronizarán tus eventos de Google Calendar junto a tus
-            evaluaciones.
-          </p>
+        {/* Google Calendar (solo lectura) */}
+        <div className="panel flex flex-col p-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="font-semibold">
+              📆 Google Calendar{' '}
+              {gcal.conectado && (
+                <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-300">
+                  conectado
+                </span>
+              )}
+            </h2>
+            {gcal.conectado && (
+              <button
+                onClick={desconectar}
+                className="text-xs text-zinc-500 transition-colors hover:text-red-400"
+              >
+                desconectar
+              </button>
+            )}
+          </div>
+
+          {!gcalConfigurado() ? (
+            <div className="flex flex-1 flex-col items-center justify-center text-center">
+              <p className="text-sm text-zinc-400">
+                Falta configurar el acceso: agrega{' '}
+                <code className="rounded bg-white/10 px-1.5 py-0.5 text-xs">
+                  VITE_GOOGLE_CLIENT_ID
+                </code>{' '}
+                en tu <code className="rounded bg-white/10 px-1.5 py-0.5 text-xs">.env</code>{' '}
+                y reinicia el servidor.
+              </p>
+            </div>
+          ) : !gcal.conectado ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+              <p className="max-w-xs text-sm text-zinc-500">
+                Conecta tu cuenta para ver tus eventos junto a las evaluaciones
+                (solo lectura, la sesión dura ~1 hora).
+              </p>
+              <button onClick={conectar} className="btn-primario px-4 py-2 text-sm">
+                Conectar Google Calendar
+              </button>
+              {gcal.error && <p className="text-xs text-red-400">{gcal.error}</p>}
+            </div>
+          ) : (
+            <div className="min-h-0 flex-1">
+              {gcal.error && <p className="mb-2 text-xs text-red-400">{gcal.error}</p>}
+              {gcal.cargando ? (
+                <p className="text-sm text-zinc-500">Cargando eventos…</p>
+              ) : gcal.eventos.length === 0 ? (
+                <p className="text-sm text-zinc-500">
+                  Sin eventos en Google Calendar este mes.
+                </p>
+              ) : (
+                <ul className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
+                  {gcal.eventos.map((e) => (
+                    <li
+                      key={e.id}
+                      className="flex items-center gap-3 rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-3 py-2"
+                    >
+                      <span className="w-14 shrink-0 text-xs text-cyan-300">
+                        {formatearFecha(e.fecha)}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm">{e.titulo}</span>
+                      <span className="shrink-0 text-xs text-zinc-500">
+                        {e.todoElDia ? 'todo el día' : e.hora}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
