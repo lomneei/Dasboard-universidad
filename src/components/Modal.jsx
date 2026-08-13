@@ -3,11 +3,11 @@ export default function Modal({ abierto, titulo, onCerrar, children }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="modal-fondo fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
       onClick={onCerrar}
     >
       <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto panel p-6"
+        className="modal-caja w-full max-w-md max-h-[90vh] overflow-y-auto panel p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">

@@ -46,14 +46,14 @@ h3 {
     @apply rounded-xl border border-white/10 bg-noche-800 px-3 py-2 text-zinc-100 placeholder-zinc-500 transition-colors focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500/40;
   }
 
-  /* Botón principal con glow al hover */
+  /* Botón principal con glow al hover y "press" al click */
   .btn-primario {
-    @apply rounded-xl bg-violet-600 font-medium text-white transition-all duration-200 hover:bg-violet-500 hover:shadow-[0_0_22px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:hover:bg-violet-600 disabled:hover:shadow-none;
+    @apply rounded-xl bg-violet-600 font-medium text-white transition-all duration-200 hover:bg-violet-500 hover:shadow-[0_0_22px_rgba(139,92,246,0.4)] active:scale-[0.97] disabled:opacity-50 disabled:hover:bg-violet-600 disabled:hover:shadow-none;
   }
 
   /* Botón secundario discreto */
   .btn-fantasma {
-    @apply rounded-xl border border-white/10 text-zinc-300 transition-colors hover:border-violet-500/40 hover:bg-white/5;
+    @apply rounded-xl border border-white/10 text-zinc-300 transition-all duration-200 hover:border-violet-500/40 hover:bg-white/5 active:scale-[0.97];
   }
 
   /* Glow para elementos activos */
@@ -97,6 +97,72 @@ h3 {
 
 .pagina-entrada {
   animation: aparecer 0.25s ease-out;
+}
+
+/* Entrada de los modales: fondo con fundido, caja con leve zoom */
+@keyframes fundido {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.modal-fondo {
+  animation: fundido 0.15s ease-out;
+}
+
+.modal-caja {
+  animation: modal-entrada 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Selección de texto en violeta */
+::selection {
+  background: rgba(139, 92, 246, 0.45);
+  color: #fff;
+}
+
+/* Foco visible consistente (teclado) */
+:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.6);
+  outline-offset: 2px;
+}
+
+/* Scrollbars oscuras acorde a la identidad */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2638 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2638;
+  border: 2px solid #0b0a10;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b3550;
 }
 
 /* Selects nativos: opciones legibles en dark */
