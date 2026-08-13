@@ -246,13 +246,20 @@ export default function Tareas() {
     cargar()
   }
 
+  // Update optimista: la fila cambia al instante (animación del check
+  // incluida) y si Supabase falla se revierte recargando.
   const alternar = async (tarea) => {
+    setFilas((fs) =>
+      fs.map((f) => (f.id === tarea.id ? { ...f, completado: !f.completado } : f)),
+    )
     const { error } = await supabase
       .from('checklist_diario')
       .update({ completado: !tarea.completado })
       .eq('id', tarea.id)
-    if (error) setError(error.message)
-    else cargar()
+    if (error) {
+      setError(error.message)
+      cargar()
+    }
   }
 
   const eliminar = async (tarea) => {
@@ -387,15 +394,19 @@ export default function Tareas() {
         <ul className="space-y-1.5">
           {deHoy.map((tarea) => (
             <li key={tarea.id} className="panel overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-2.5">
+              <div
+                className={`flex items-center gap-3 px-4 py-2.5 transition-colors duration-300 ${
+                  tarea.completado ? 'bg-emerald-500/[0.05]' : ''
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={tarea.completado}
                   onChange={() => alternar(tarea)}
-                  className="h-4.5 w-4.5 shrink-0 accent-violet-500"
+                  className="check-tarea h-4.5 w-4.5 shrink-0"
                 />
                 <span
-                  className={`min-w-0 flex-1 text-sm ${
+                  className={`min-w-0 flex-1 text-sm transition-colors duration-300 ${
                     tarea.completado ? 'text-zinc-500 line-through' : ''
                   }`}
                 >

@@ -62,6 +62,27 @@ h3 {
   }
 }
 
+/* Check de tarea: rebote al marcar */
+@keyframes pop-check {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.check-tarea {
+  accent-color: #8b5cf6;
+}
+
+.check-tarea:checked {
+  animation: pop-check 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* Entrada suave de cada página */
 @keyframes aparecer {
   from {

@@ -112,13 +112,20 @@ export default function Inicio() {
     return () => window.removeEventListener(EVENTO_TAREAS, cargar)
   }, [])
 
+  // Update optimista: el check y las stats reaccionan al instante;
+  // si Supabase falla se revierte recargando todo.
   const alternarTarea = async (tarea) => {
+    setTareas((ts) =>
+      ts.map((t) => (t.id === tarea.id ? { ...t, completado: !t.completado } : t)),
+    )
     const { error } = await supabase
       .from('checklist_diario')
       .update({ completado: !tarea.completado })
       .eq('id', tarea.id)
-    if (error) setError(error.message)
-    else cargar()
+    if (error) {
+      setError(error.message)
+      cargar()
+    }
   }
 
   if (cargando) return <p className="text-zinc-400">Preparando tu día…</p>
@@ -354,34 +361,48 @@ export default function Inicio() {
             </div>
             {sinSchemaTareas ? (
               <p className="text-sm text-zinc-500">Activa las tareas corriendo schema_v3.sql.</p>
-            ) : pendientesHoy.length === 0 ? (
+            ) : tareasHoy.length === 0 ? (
               <p className="text-sm text-zinc-500">
-                {tareasHoy.length === 0
-                  ? 'Sin tareas para hoy. Agrégalas en Tareas o con el botón +.'
-                  : '✓ Todo completado. Día redondo.'}
+                Sin tareas para hoy. Agrégalas en Tareas o con el botón +.
               </p>
             ) : (
-              <ul className="space-y-1">
-                {pendientesHoy.map((tarea) => (
-                  <li
-                    key={tarea.id}
-                    className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/[0.04]"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      onChange={() => alternarTarea(tarea)}
-                      className="h-4 w-4 shrink-0 accent-violet-500"
-                    />
-                    <span className="min-w-0 flex-1 text-sm">{tarea.texto}</span>
-                    {tarea.recurrente_id && (
-                      <span className="shrink-0 text-xs text-violet-400" title="Tarea diaria">
-                        🔁
+              <>
+                {/* Las completadas se quedan tachadas, no desaparecen */}
+                <ul className="space-y-1">
+                  {tareasHoy.map((tarea) => (
+                    <li
+                      key={tarea.id}
+                      className={`flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors duration-300 hover:bg-white/[0.04] ${
+                        tarea.completado ? 'bg-emerald-500/[0.05]' : ''
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={tarea.completado}
+                        onChange={() => alternarTarea(tarea)}
+                        className="check-tarea h-4 w-4 shrink-0"
+                      />
+                      <span
+                        className={`min-w-0 flex-1 text-sm transition-colors duration-300 ${
+                          tarea.completado ? 'text-zinc-500 line-through' : ''
+                        }`}
+                      >
+                        {tarea.texto}
                       </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+                      {tarea.recurrente_id && (
+                        <span className="shrink-0 text-xs text-violet-400" title="Tarea diaria">
+                          🔁
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {pendientesHoy.length === 0 && (
+                  <p className="mt-2 text-xs font-medium text-emerald-400">
+                    ✓ Todo completado. Día redondo.
+                  </p>
+                )}
+              </>
             )}
           </section>
 
