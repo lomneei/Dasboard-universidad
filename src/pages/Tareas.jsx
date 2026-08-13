@@ -88,6 +88,99 @@ function GridConsistencia({ porDia }) {
   )
 }
 
+// Mini-calendario con el historial de una tarea recurrente:
+// qué días se hizo (verde), cuáles no (rojo) y cuáles no tienen registro.
+function HistorialRecurrente({ recurrenteId }) {
+  const [filas, setFilas] = useState(null)
+  const [mes, setMes] = useState(() => {
+    const d = new Date()
+    return new Date(d.getFullYear(), d.getMonth(), 1)
+  })
+
+  useEffect(() => {
+    supabase
+      .from('checklist_diario')
+      .select('fecha, completado')
+      .eq('recurrente_id', recurrenteId)
+      .order('fecha')
+      .then(({ data }) => setFilas(data ?? []))
+  }, [recurrenteId])
+
+  if (filas === null)
+    return <p className="border-t border-white/[0.06] px-4 py-3 text-xs text-zinc-500">Cargando historial…</p>
+
+  const porFecha = new Map(filas.map((f) => [f.fecha, f.completado]))
+  const hechas = filas.filter((f) => f.completado).length
+  const hoy = hoyISO()
+
+  const offset = (mes.getDay() + 6) % 7 // lunes = 0
+  const diasEnMes = new Date(mes.getFullYear(), mes.getMonth() + 1, 0).getDate()
+  const celdas = []
+  for (let i = 0; i < offset; i++) celdas.push(null)
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(new Date(mes.getFullYear(), mes.getMonth(), d))
+
+  return (
+    <div className="border-t border-white/[0.06] px-4 py-3">
+      <div className="mb-2 flex items-center justify-between">
+        <button
+          onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() - 1, 1))}
+          className="btn-fantasma px-2 py-0.5 text-xs"
+          aria-label="Mes anterior"
+        >
+          ←
+        </button>
+        <div className="text-center">
+          <p className="text-xs font-semibold capitalize">
+            {mes.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+          </p>
+          <p className="text-[10px] text-zinc-500">
+            hecha {hechas} de {filas.length} {filas.length === 1 ? 'día' : 'días'}
+            {filas.length > 0 && ` (${Math.round((hechas / filas.length) * 100)}%)`}
+          </p>
+        </div>
+        <button
+          onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() + 1, 1))}
+          className="btn-fantasma px-2 py-0.5 text-xs"
+          aria-label="Mes siguiente"
+        >
+          →
+        </button>
+      </div>
+      <div className="grid max-w-64 grid-cols-7 gap-1">
+        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((n, i) => (
+          <span key={i} className="text-center text-[9px] font-semibold text-zinc-600">
+            {n}
+          </span>
+        ))}
+        {celdas.map((fecha, i) => {
+          if (!fecha) return <span key={`v${i}`} />
+          const iso = fechaISO(fecha)
+          const estado = porFecha.get(iso)
+          const clases =
+            estado === true
+              ? 'bg-emerald-500/80 font-semibold text-white'
+              : estado === false
+                ? 'bg-red-500/25 text-red-300'
+                : 'text-zinc-600'
+          return (
+            <span
+              key={iso}
+              title={
+                estado === true ? `${iso} · hecha` : estado === false ? `${iso} · no hecha` : iso
+              }
+              className={`flex h-6 items-center justify-center rounded-md text-[10px] ${clases} ${
+                iso === hoy ? 'ring-1 ring-violet-400/70' : ''
+              }`}
+            >
+              {fecha.getDate()}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function Tareas() {
   const [filas, setFilas] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -95,6 +188,8 @@ export default function Tareas() {
   const [texto, setTexto] = useState('')
   const [esRecurrente, setEsRecurrente] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  // recurrente_id cuyo historial está expandido (null = ninguno)
+  const [historialAbierto, setHistorialAbierto] = useState(null)
 
   const cargar = async () => {
     const { error: errMat } = await materializarTareasHoy()
@@ -291,35 +386,57 @@ export default function Tareas() {
       ) : (
         <ul className="space-y-1.5">
           {deHoy.map((tarea) => (
-            <li key={tarea.id} className="panel flex items-center gap-3 px-4 py-2.5">
-              <input
-                type="checkbox"
-                checked={tarea.completado}
-                onChange={() => alternar(tarea)}
-                className="h-4.5 w-4.5 shrink-0 accent-violet-500"
-              />
-              <span
-                className={`min-w-0 flex-1 text-sm ${
-                  tarea.completado ? 'text-zinc-500 line-through' : ''
-                }`}
-              >
-                {tarea.texto}
-              </span>
-              {tarea.recurrente_id && (
+            <li key={tarea.id} className="panel overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={tarea.completado}
+                  onChange={() => alternar(tarea)}
+                  className="h-4.5 w-4.5 shrink-0 accent-violet-500"
+                />
                 <span
-                  className="shrink-0 rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-medium text-violet-300"
-                  title="Se repite todos los días"
+                  className={`min-w-0 flex-1 text-sm ${
+                    tarea.completado ? 'text-zinc-500 line-through' : ''
+                  }`}
                 >
-                  🔁 diaria
+                  {tarea.texto}
                 </span>
+                {tarea.recurrente_id && (
+                  <>
+                    <span
+                      className="shrink-0 rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-medium text-violet-300"
+                      title="Se repite todos los días"
+                    >
+                      🔁 diaria
+                    </span>
+                    <button
+                      onClick={() =>
+                        setHistorialAbierto(
+                          historialAbierto === tarea.recurrente_id ? null : tarea.recurrente_id,
+                        )
+                      }
+                      className={`shrink-0 rounded p-1 transition-colors ${
+                        historialAbierto === tarea.recurrente_id
+                          ? 'bg-violet-500/15 text-violet-300'
+                          : 'text-zinc-600 hover:bg-white/10 hover:text-zinc-300'
+                      }`}
+                      title="Ver historial de esta tarea"
+                    >
+                      📅
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => eliminar(tarea)}
+                  className="shrink-0 rounded p-1 text-zinc-600 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                  title={tarea.recurrente_id ? 'Desactivar recurrente' : 'Eliminar'}
+                >
+                  🗑
+                </button>
+              </div>
+              {tarea.recurrente_id && historialAbierto === tarea.recurrente_id && (
+                <HistorialRecurrente recurrenteId={tarea.recurrente_id} />
               )}
-              <button
-                onClick={() => eliminar(tarea)}
-                className="shrink-0 rounded p-1 text-zinc-600 transition-colors hover:bg-red-500/10 hover:text-red-400"
-                title={tarea.recurrente_id ? 'Desactivar recurrente' : 'Eliminar'}
-              >
-                🗑
-              </button>
             </li>
           ))}
         </ul>
