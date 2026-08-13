@@ -4,6 +4,7 @@ import { DIAS_SEMANA, TIPOS_BLOQUE, HORA_MIN, HORA_MAX } from '../lib/constantes
 import { formatearHora, horaADecimal } from '../lib/fechas'
 import Modal from '../components/Modal.jsx'
 import GestionRamos from '../components/GestionRamos.jsx'
+import ControlAsistencia from '../components/ControlAsistencia.jsx'
 
 const ALTO_HORA = 52 // px por hora en la grilla
 const FORM_VACIO = {
@@ -232,6 +233,8 @@ export default function Horario() {
           </div>
         </div>
       </div>
+
+      <ControlAsistencia ramos={ramos} />
 
       <Modal
         abierto={modalAbierto}

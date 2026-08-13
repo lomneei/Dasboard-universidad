@@ -39,6 +39,30 @@ export const TIPOS_ASISTENCIA = [
   { valor: 'ayudantia', nombre: 'Ayudantía' },
   { valor: 'laboratorio', nombre: 'Laboratorio' },
   { valor: 'taller', nombre: 'Taller' },
+  { valor: 'actividad', nombre: 'Actividad en clase' },
+]
+
+// Rango del semestre actual: genera las fechas esperadas del control
+// de asistencia. Actualizar al cambiar de semestre.
+export const SEMESTRE = { inicio: '2026-08-10', fin: '2026-11-27' }
+
+// Actividades que pasan lista (control de asistencia en Horario).
+// dia: 1=lunes ... 5=viernes si es semanal; null = puntual (se registra
+// a mano cuando ocurre). ramoNombre debe calzar con el nombre del ramo.
+export const SEGUIMIENTOS_ASISTENCIA = [
+  {
+    ramoNombre: 'Análisis Económico',
+    tipo: 'ayudantia',
+    etiqueta: 'Ayudantía Análisis Económico',
+    dia: 5,
+  },
+  { ramoNombre: 'Dinámica', tipo: 'taller', etiqueta: 'Taller Dinámica', dia: 5 },
+  {
+    ramoNombre: 'Análisis Económico',
+    tipo: 'actividad',
+    etiqueta: 'Actividad en clase · Análisis Económico',
+    dia: null,
+  },
 ]
 
 export const CATEGORIAS_CHECKLIST = [
