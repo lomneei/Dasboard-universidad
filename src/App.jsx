@@ -8,6 +8,7 @@ import Calendario from './pages/Calendario.jsx'
 import RamoDetalle from './pages/RamoDetalle.jsx'
 import Horario from './pages/Horario.jsx'
 import Voley from './pages/Voley.jsx'
+import Ideas from './pages/Ideas.jsx'
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/calendario" element={<Calendario />} />
         <Route path="/horario" element={<Horario />} />
         <Route path="/voley" element={<Voley />} />
+        <Route path="/ideas" element={<Ideas />} />
         <Route path="/ramos" element={<Navigate to="/horario" replace />} />
         <Route path="/ramos/:id" element={<RamoDetalle />} />
         <Route path="/evaluaciones" element={<Navigate to="/calendario" replace />} />

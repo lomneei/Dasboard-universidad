@@ -53,12 +53,27 @@ export default function Layout() {
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-noche-950/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3">
           <MarcaDuni />
-          <button
-            onClick={signOut}
-            className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-white/10 hover:text-zinc-200"
-          >
-            Salir
-          </button>
+          <div className="flex items-center gap-1.5">
+            {/* Captura rápida de ideas, siempre a mano junto a la nav */}
+            <NavLink
+              to="/ideas"
+              className={({ isActive }) =>
+                `rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-95 ${
+                  isActive
+                    ? 'bg-cyan-500/15 text-cyan-300'
+                    : 'text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                }`
+              }
+            >
+              💡 Ideas
+            </NavLink>
+            <button
+              onClick={signOut}
+              className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-white/10 hover:text-zinc-200"
+            >
+              Salir
+            </button>
+          </div>
         </div>
         <nav className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto px-4 pb-2.5 sm:justify-center sm:gap-2">
           {linksIzquierda.map((l) => (
