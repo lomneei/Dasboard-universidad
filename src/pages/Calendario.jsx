@@ -65,84 +65,122 @@ function VistaMensual({ evaluaciones, eventosGcal, mes, onCambiarMes }) {
     onCambiarMes(new Date(mes.getFullYear(), mes.getMonth() + delta, 1))
 
   return (
-    <div className="panel p-4">
+    <div className="panel mb-6 p-4">
       <div className="mb-3 flex items-center justify-between">
         <button
           onClick={() => cambiarMes(-1)}
-          className="btn-fantasma px-2.5 py-1 text-sm"
+          className="btn-fantasma px-3 py-1.5 text-sm"
           aria-label="Mes anterior"
         >
           ←
         </button>
-        <h2 className="font-semibold capitalize">
+        <h2 className="text-lg font-semibold capitalize">
           {mes.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
         </h2>
         <button
           onClick={() => cambiarMes(1)}
-          className="btn-fantasma px-2.5 py-1 text-sm"
+          className="btn-fantasma px-3 py-1.5 text-sm"
           aria-label="Mes siguiente"
         >
           →
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {[...DIAS_SEMANA.map((d) => d.corto), 'Sáb', 'Dom'].map((nombre) => (
-          <div
-            key={nombre}
-            className="pb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500"
-          >
-            {nombre}
-          </div>
-        ))}
-        {celdas.map((fecha, i) => {
-          if (!fecha) return <div key={`v${i}`} />
-          const iso = fechaISO(fecha)
-          const evs = porFecha.get(iso) ?? []
-          const gevs = gcalPorFecha.get(iso) ?? []
-          const esHoy = iso === hoy
-          const tooltip = [
-            ...evs.map((e) => `📝 ${e.nombre} (${e.ramos?.sigla})`),
-            ...gevs.map((g) => `📆 ${g.titulo}${g.hora ? ` · ${g.hora}` : ''}`),
-          ].join('\n')
-          return (
+      <div className="overflow-x-auto">
+        <div className="grid min-w-[640px] grid-cols-7 gap-1">
+          {[...DIAS_SEMANA.map((d) => d.corto), 'Sáb', 'Dom'].map((nombre) => (
             <div
-              key={iso}
-              title={tooltip || undefined}
-              className={`flex min-h-11 flex-col items-center rounded-lg py-1 text-sm transition-colors ${
-                esHoy
-                  ? 'bg-violet-600/25 font-bold text-violet-200 ring-1 ring-violet-500/50'
-                  : evs.length > 0 || gevs.length > 0
-                    ? 'bg-white/[0.06] hover:bg-white/10'
-                    : 'text-zinc-400'
-              }`}
+              key={nombre}
+              className="pb-1 text-center text-[10px] font-semibold uppercase tracking-wide text-zinc-500"
             >
-              {fecha.getDate()}
-              {(evs.length > 0 || gevs.length > 0) && (
-                <div className="mt-0.5 flex flex-wrap justify-center gap-0.5">
-                  {evs.slice(0, 3).map((e) => (
-                    <span
-                      key={e.id}
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: e.ramos?.color ?? '#8b5cf6' }}
-                    />
-                  ))}
-                  {evs.length > 3 && (
-                    <span className="text-[8px] leading-none text-zinc-400">
-                      +{evs.length - 3}
-                    </span>
+              {nombre}
+            </div>
+          ))}
+          {celdas.map((fecha, i) => {
+            if (!fecha) return <div key={`v${i}`} className="min-h-[92px]" />
+            const iso = fechaISO(fecha)
+            const evs = porFecha.get(iso) ?? []
+            const gevs = gcalPorFecha.get(iso) ?? []
+            const esHoy = iso === hoy
+            // Evaluaciones propias y eventos de Google en una sola celda,
+            // con el nombre visible (como Google Calendar de verdad)
+            const chips = [
+              ...evs.map((e) => ({
+                id: `e${e.id}`,
+                gcal: false,
+                texto: e.nombre,
+                color: e.ramos?.color ?? '#8b5cf6',
+                detalle: `📝 ${e.nombre} (${e.ramos?.sigla}) · ${e.peso_pct}%`,
+              })),
+              ...gevs.map((g) => ({
+                id: `g${g.id}`,
+                gcal: true,
+                texto: g.titulo,
+                detalle: `G ${g.titulo}${g.hora ? ` · ${g.hora}` : ''}`,
+              })),
+            ]
+            return (
+              <div
+                key={iso}
+                title={chips.map((c) => c.detalle).join('\n') || undefined}
+                className={`min-h-[92px] rounded-lg border p-1 transition-colors ${
+                  esHoy
+                    ? 'border-violet-500/50 bg-violet-600/10'
+                    : 'border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.05]'
+                }`}
+              >
+                <p
+                  className={`mb-1 px-0.5 text-xs ${
+                    esHoy ? 'font-bold text-violet-300' : 'text-zinc-400'
+                  }`}
+                >
+                  {fecha.getDate()}
+                </p>
+                <div className="space-y-0.5">
+                  {chips.slice(0, 3).map((c) =>
+                    c.gcal ? (
+                      <div
+                        key={c.id}
+                        className="flex items-center gap-1 rounded-r border-l-2 border-cyan-400 bg-cyan-500/10 px-1 py-0.5"
+                      >
+                        <span className="shrink-0 rounded-sm bg-cyan-400/25 px-[3px] text-[8px] font-bold leading-tight text-cyan-300">
+                          G
+                        </span>
+                        <span className="truncate text-[10px] leading-tight text-cyan-100">
+                          {c.texto}
+                        </span>
+                      </div>
+                    ) : (
+                      <div
+                        key={c.id}
+                        className="flex items-center gap-1 rounded-r bg-white/[0.07] px-1 py-0.5"
+                        style={{ borderLeft: `2px solid ${c.color}` }}
+                      >
+                        <span className="shrink-0 text-[9px] leading-tight">📝</span>
+                        <span className="truncate text-[10px] font-medium leading-tight text-zinc-100">
+                          {c.texto}
+                        </span>
+                      </div>
+                    ),
                   )}
-                  {gevs.length > 0 && (
-                    <span
-                      className="h-1.5 w-1.5 rounded-full bg-cyan-400"
-                      title="Eventos de Google Calendar"
-                    />
+                  {chips.length > 3 && (
+                    <p className="px-1 text-[9px] text-zinc-500">+{chips.length - 3} más</p>
                   )}
                 </div>
-              )}
-            </div>
-          )
-        })}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center gap-3 text-[10px] text-zinc-500">
+        <span>📝 evaluación (color del ramo)</span>
+        <span className="flex items-center gap-1">
+          <span className="rounded-sm bg-cyan-400/25 px-[3px] text-[8px] font-bold text-cyan-300">
+            G
+          </span>
+          Google Calendar
+        </span>
       </div>
     </div>
   )
@@ -312,88 +350,49 @@ export default function Calendario() {
 
       {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
-        <VistaMensual
-          evaluaciones={evaluaciones}
-          eventosGcal={gcal.eventos}
-          mes={mes}
-          onCambiarMes={setMes}
-        />
-
-        {/* Google Calendar (solo lectura) */}
-        <div className="panel flex flex-col p-4">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="font-semibold">
-              📆 Google Calendar{' '}
-              {gcal.conectado && (
-                <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-300">
-                  conectado
-                </span>
-              )}
-            </h2>
-            {gcal.conectado && (
-              <button
-                onClick={desconectar}
-                className="text-xs text-zinc-500 transition-colors hover:text-red-400"
-              >
-                desconectar
-              </button>
-            )}
-          </div>
-
-          {!gcalConfigurado() ? (
-            <div className="flex flex-1 flex-col items-center justify-center text-center">
-              <p className="text-sm text-zinc-400">
-                Falta configurar el acceso: agrega{' '}
-                <code className="rounded bg-white/10 px-1.5 py-0.5 text-xs">
-                  VITE_GOOGLE_CLIENT_ID
-                </code>{' '}
-                en tu <code className="rounded bg-white/10 px-1.5 py-0.5 text-xs">.env</code>{' '}
-                y reinicia el servidor.
-              </p>
-            </div>
-          ) : !gcal.conectado ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-              <p className="max-w-xs text-sm text-zinc-500">
-                Conecta tu cuenta para ver tus eventos junto a las evaluaciones
-                (solo lectura, la sesión dura ~1 hora).
-              </p>
-              <button onClick={conectar} className="btn-primario px-4 py-2 text-sm">
-                Conectar Google Calendar
-              </button>
-              {gcal.error && <p className="text-xs text-red-400">{gcal.error}</p>}
-            </div>
+      {/* Barra de conexión con Google Calendar (los eventos van DENTRO
+          del calendario mensual, no en una lista aparte) */}
+      <div className="panel mb-4 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+        <p className="text-sm font-medium text-zinc-300">
+          📆 Google Calendar{' '}
+          {gcal.conectado ? (
+            <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-300">
+              conectado
+            </span>
           ) : (
-            <div className="min-h-0 flex-1">
-              {gcal.error && <p className="mb-2 text-xs text-red-400">{gcal.error}</p>}
-              {gcal.cargando ? (
-                <p className="text-sm text-zinc-500">Cargando eventos…</p>
-              ) : gcal.eventos.length === 0 ? (
-                <p className="text-sm text-zinc-500">
-                  Sin eventos en Google Calendar este mes.
-                </p>
-              ) : (
-                <ul className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
-                  {gcal.eventos.map((e) => (
-                    <li
-                      key={e.id}
-                      className="flex items-center gap-3 rounded-lg border border-cyan-500/15 bg-cyan-500/5 px-3 py-2"
-                    >
-                      <span className="w-14 shrink-0 text-xs text-cyan-300">
-                        {formatearFecha(e.fecha)}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-sm">{e.titulo}</span>
-                      <span className="shrink-0 text-xs text-zinc-500">
-                        {e.todoElDia ? 'todo el día' : e.hora}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <span className="text-xs font-normal text-zinc-500">
+              — conéctalo para ver tus eventos dentro del calendario
+            </span>
+          )}
+        </p>
+        <div className="flex items-center gap-3">
+          {gcal.cargando && <span className="text-xs text-zinc-500">cargando…</span>}
+          {gcal.error && <span className="text-xs text-red-400">{gcal.error}</span>}
+          {!gcalConfigurado() ? (
+            <span className="text-xs text-amber-300">
+              falta <code className="rounded bg-white/10 px-1">VITE_GOOGLE_CLIENT_ID</code> en .env
+            </span>
+          ) : gcal.conectado ? (
+            <button
+              onClick={desconectar}
+              className="text-xs text-zinc-500 transition-colors hover:text-red-400"
+            >
+              desconectar
+            </button>
+          ) : (
+            <button onClick={conectar} className="btn-primario px-3 py-1.5 text-xs">
+              Conectar
+            </button>
           )}
         </div>
       </div>
+
+      <VistaMensual
+        evaluaciones={evaluaciones}
+        eventosGcal={gcal.eventos}
+        mes={mes}
+        onCambiarMes={setMes}
+      />
 
       {listas.pendientes.length === 0 && listas.rendidas.length === 0 ? (
         <p className="panel p-8 text-center text-zinc-400">
