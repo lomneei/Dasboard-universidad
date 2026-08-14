@@ -88,94 +88,107 @@ function GridConsistencia({ porDia }) {
   )
 }
 
-// Mini-calendario con el historial de una tarea recurrente:
-// qué días se hizo (verde), cuáles no (rojo) y cuáles no tienen registro.
-function HistorialRecurrente({ recurrenteId }) {
-  const [filas, setFilas] = useState(null)
-  const [mes, setMes] = useState(() => {
-    const d = new Date()
-    return new Date(d.getFullYear(), d.getMonth(), 1)
+// Heatmap unificado: una fila por tarea recurrente activa, una columna
+// por día (últimas 4 semanas). De un vistazo se ve qué tareas se
+// cumplen consistentemente y cuáles no.
+const DIAS_HEATMAP = 28
+
+function GridPorTarea({ recurrentes, filas }) {
+  if (recurrentes.length === 0)
+    return (
+      <p className="py-4 text-center text-sm text-zinc-500">
+        No tienes tareas diarias activas. Crea una con el switch “¿Se repite todos los días?”.
+      </p>
+    )
+
+  const hoy = hoyInicioDia()
+  const dias = Array.from({ length: DIAS_HEATMAP }, (_, i) => {
+    const d = new Date(hoy)
+    d.setDate(d.getDate() - (DIAS_HEATMAP - 1 - i))
+    return d
   })
 
-  useEffect(() => {
-    supabase
-      .from('checklist_diario')
-      .select('fecha, completado')
-      .eq('recurrente_id', recurrenteId)
-      .order('fecha')
-      .then(({ data }) => setFilas(data ?? []))
-  }, [recurrenteId])
-
-  if (filas === null)
-    return <p className="border-t border-white/[0.06] px-4 py-3 text-xs text-zinc-500">Cargando historial…</p>
-
-  const porFecha = new Map(filas.map((f) => [f.fecha, f.completado]))
-  const hechas = filas.filter((f) => f.completado).length
-  const hoy = hoyISO()
-
-  const offset = (mes.getDay() + 6) % 7 // lunes = 0
-  const diasEnMes = new Date(mes.getFullYear(), mes.getMonth() + 1, 0).getDate()
-  const celdas = []
-  for (let i = 0; i < offset; i++) celdas.push(null)
-  for (let d = 1; d <= diasEnMes; d++) celdas.push(new Date(mes.getFullYear(), mes.getMonth(), d))
+  // (recurrente, fecha) -> completado
+  const estado = new Map()
+  for (const f of filas) {
+    if (f.recurrente_id) estado.set(`${f.recurrente_id}|${f.fecha}`, f.completado)
+  }
 
   return (
-    <div className="border-t border-white/[0.06] px-4 py-3">
-      <div className="mb-2 flex items-center justify-between">
-        <button
-          onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() - 1, 1))}
-          className="btn-fantasma px-2 py-0.5 text-xs"
-          aria-label="Mes anterior"
-        >
-          ←
-        </button>
-        <div className="text-center">
-          <p className="text-xs font-semibold capitalize">
-            {mes.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
-          </p>
-          <p className="text-[10px] text-zinc-500">
-            hecha {hechas} de {filas.length} {filas.length === 1 ? 'día' : 'días'}
-            {filas.length > 0 && ` (${Math.round((hechas / filas.length) * 100)}%)`}
-          </p>
+    <div className="overflow-x-auto">
+      <div className="min-w-fit">
+        {/* Encabezado: número de día, lunes destacado */}
+        <div className="mb-1 flex items-center gap-[3px]">
+          <span className="w-28 shrink-0" />
+          {dias.map((d) => {
+            const iso = fechaISO(d)
+            return (
+              <span
+                key={iso}
+                className={`w-[18px] shrink-0 text-center text-[9px] leading-none ${
+                  iso === hoyISO()
+                    ? 'font-bold text-violet-300'
+                    : d.getDay() === 1
+                      ? 'text-zinc-400'
+                      : 'text-zinc-600'
+                }`}
+              >
+                {d.getDate()}
+              </span>
+            )
+          })}
+          <span className="ml-1 w-9 shrink-0" />
         </div>
-        <button
-          onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() + 1, 1))}
-          className="btn-fantasma px-2 py-0.5 text-xs"
-          aria-label="Mes siguiente"
-        >
-          →
-        </button>
-      </div>
-      <div className="grid max-w-64 grid-cols-7 gap-1">
-        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((n, i) => (
-          <span key={i} className="text-center text-[9px] font-semibold text-zinc-600">
-            {n}
-          </span>
-        ))}
-        {celdas.map((fecha, i) => {
-          if (!fecha) return <span key={`v${i}`} />
-          const iso = fechaISO(fecha)
-          const estado = porFecha.get(iso)
-          const clases =
-            estado === true
-              ? 'bg-emerald-500/80 font-semibold text-white'
-              : estado === false
-                ? 'bg-red-500/25 text-red-300'
-                : 'text-zinc-600'
+
+        {recurrentes.map((rec) => {
+          const celdas = dias.map((d) => ({
+            iso: fechaISO(d),
+            completado: estado.get(`${rec.id}|${fechaISO(d)}`),
+          }))
+          const conInstancia = celdas.filter((c) => c.completado !== undefined)
+          const hechas = conInstancia.filter((c) => c.completado).length
+          const pct =
+            conInstancia.length > 0 ? Math.round((hechas / conInstancia.length) * 100) : null
+
           return (
-            <span
-              key={iso}
-              title={
-                estado === true ? `${iso} · hecha` : estado === false ? `${iso} · no hecha` : iso
-              }
-              className={`flex h-6 items-center justify-center rounded-md text-[10px] ${clases} ${
-                iso === hoy ? 'ring-1 ring-violet-400/70' : ''
-              }`}
-            >
-              {fecha.getDate()}
-            </span>
+            <div key={rec.id} className="flex items-center gap-[3px] py-[2px]">
+              <span
+                className="w-28 shrink-0 truncate text-xs text-zinc-300"
+                title={rec.texto}
+              >
+                {rec.texto}
+              </span>
+              {celdas.map((c) => (
+                <span
+                  key={c.iso}
+                  title={`${rec.texto} · ${c.iso}${
+                    c.completado === true
+                      ? ': hecha ✓'
+                      : c.completado === false
+                        ? ': no hecha'
+                        : ''
+                  }`}
+                  className={`h-[18px] w-[18px] shrink-0 rounded-[4px] transition-colors ${
+                    c.completado === true
+                      ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.4)]'
+                      : c.completado === false
+                        ? 'bg-white/[0.09]'
+                        : 'bg-white/[0.03]'
+                  } ${c.iso === hoyISO() ? 'ring-1 ring-violet-400/60' : ''}`}
+                />
+              ))}
+              <span className="ml-1 w-9 shrink-0 text-right text-[10px] text-zinc-500">
+                {pct !== null ? `${pct}%` : '—'}
+              </span>
+            </div>
           )
         })}
+
+        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-zinc-500">
+          <span className="h-[10px] w-[10px] rounded-[3px] bg-emerald-500" /> hecha
+          <span className="ml-2 h-[10px] w-[10px] rounded-[3px] bg-white/[0.09]" /> no hecha
+          <span className="ml-2 h-[10px] w-[10px] rounded-[3px] bg-white/[0.03]" /> sin registro
+        </div>
       </div>
     </div>
   )
@@ -188,8 +201,9 @@ export default function Tareas() {
   const [texto, setTexto] = useState('')
   const [esRecurrente, setEsRecurrente] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  // recurrente_id cuyo historial está expandido (null = ninguno)
-  const [historialAbierto, setHistorialAbierto] = useState(null)
+  const [recurrentes, setRecurrentes] = useState([])
+  // pestaña del panel de consistencia: 'general' | 'tareas'
+  const [vistaGrid, setVistaGrid] = useState('general')
 
   const cargar = async () => {
     const { error: errMat } = await materializarTareasHoy()
@@ -200,14 +214,23 @@ export default function Tareas() {
     }
     const inicio = lunesDe(hoyInicioDia())
     inicio.setDate(inicio.getDate() - (SEMANAS_GRID - 1) * 7)
-    const { data, error } = await supabase
-      .from('checklist_diario')
-      .select('*')
-      .gte('fecha', fechaISO(inicio))
-      .order('created_at')
+    const [resFilas, resRec] = await Promise.all([
+      supabase
+        .from('checklist_diario')
+        .select('*')
+        .gte('fecha', fechaISO(inicio))
+        .order('created_at'),
+      supabase
+        .from('tareas_recurrentes')
+        .select('*')
+        .eq('activa', true)
+        .order('created_at'),
+    ])
+    const error = resFilas.error ?? resRec.error
     if (error) setError(error.message)
     else {
-      setFilas(data)
+      setFilas(resFilas.data)
+      setRecurrentes(resRec.data)
       setError(null)
     }
     setCargando(false)
@@ -311,7 +334,6 @@ export default function Tareas() {
   const racha = calcularRacha(porDia)
   const hoy = hoyISO()
   const deHoy = filas.filter((f) => f.fecha === hoy)
-  const completadasHoy = deHoy.filter((f) => f.completado).length
 
   return (
     <div>
@@ -330,17 +352,36 @@ export default function Tareas() {
 
       {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
-      {/* Grid de consistencia */}
+      {/* Consistencia: vista general (todas las tareas) o por tarea */}
       <div className="panel mb-6 p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-            Consistencia · últimas {SEMANAS_GRID} semanas
+            Consistencia
           </h2>
-          <span className="text-xs text-zinc-500">
-            hoy: {completadasHoy}/{deHoy.length}
-          </span>
+          <div className="flex rounded-lg bg-white/[0.05] p-0.5">
+            {[
+              { id: 'general', nombre: 'General' },
+              { id: 'tareas', nombre: 'Por tarea' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setVistaGrid(tab.id)}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition-all duration-200 ${
+                  vistaGrid === tab.id
+                    ? 'bg-violet-600 text-white'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {tab.nombre}
+              </button>
+            ))}
+          </div>
         </div>
-        <GridConsistencia porDia={porDia} />
+        {vistaGrid === 'general' ? (
+          <GridConsistencia porDia={porDia} />
+        ) : (
+          <GridPorTarea recurrentes={recurrentes} filas={filas} />
+        )}
       </div>
 
       {/* Agregar tarea */}
@@ -413,29 +454,12 @@ export default function Tareas() {
                   {tarea.texto}
                 </span>
                 {tarea.recurrente_id && (
-                  <>
-                    <span
-                      className="shrink-0 rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-medium text-violet-300"
-                      title="Se repite todos los días"
-                    >
-                      🔁 diaria
-                    </span>
-                    <button
-                      onClick={() =>
-                        setHistorialAbierto(
-                          historialAbierto === tarea.recurrente_id ? null : tarea.recurrente_id,
-                        )
-                      }
-                      className={`shrink-0 rounded p-1 transition-colors ${
-                        historialAbierto === tarea.recurrente_id
-                          ? 'bg-violet-500/15 text-violet-300'
-                          : 'text-zinc-600 hover:bg-white/10 hover:text-zinc-300'
-                      }`}
-                      title="Ver historial de esta tarea"
-                    >
-                      📅
-                    </button>
-                  </>
+                  <span
+                    className="shrink-0 rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-medium text-violet-300"
+                    title="Se repite todos los días (su historial está en Consistencia → Por tarea)"
+                  >
+                    🔁 diaria
+                  </span>
                 )}
                 <button
                   onClick={() => eliminar(tarea)}
@@ -445,9 +469,6 @@ export default function Tareas() {
                   🗑
                 </button>
               </div>
-              {tarea.recurrente_id && historialAbierto === tarea.recurrente_id && (
-                <HistorialRecurrente recurrenteId={tarea.recurrente_id} />
-              )}
             </li>
           ))}
         </ul>
