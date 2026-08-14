@@ -1,26 +1,43 @@
 -- ============================================================
--- DUNI - Seed del horario real 2026 - 2do semestre
+-- DUNI - Seed del horario real 2026 - 2do semestre  (v2 corregida)
 -- Correr completo en: Supabase Dashboard -> SQL Editor -> New query
 --
+-- v2: ya no filtra auth.users por email (si el email no calzaba, el
+-- cross join devolvía 0 filas y el seed "corría sin errores" pero no
+-- insertaba nada). Ahora usa el único usuario de la app y falla con
+-- un mensaje claro si no encuentra ninguno.
+--
 -- Qué hace:
---   1. Borra TODOS los bloques de horario actuales (los ramos y sus
+--   1. Verifica que exista tu usuario en auth.users.
+--   2. Borra TODOS los bloques de horario actuales (los ramos y sus
 --      notas/evaluaciones NO se tocan).
---   2. Crea los ramos del semestre que no existan todavía
---      (los busca por nombre; si ya tienes un ramo con otro nombre,
---      p. ej. "FIS1514-7", renómbralo antes de correr esto para que
---      no quede duplicado).
---   3. Inserta todos los bloques del horario.
+--   3. Crea los ramos del semestre que no existan todavía (por nombre).
+--   4. Inserta todos los bloques del horario.
 --
 -- Módulos: 1: 08:20-09:30 | 2: 09:40-10:50 | 3: 11:00-12:10
 --          4: 12:20-13:30 | 5: 14:50-16:00 | 6: 16:10-17:20
 --          7: 17:30-18:40
 -- ============================================================
 
+-- 0) Guard: si esto falla, no hay usuario registrado en este proyecto
+do $$
+declare
+  total integer;
+begin
+  select count(*) into total from auth.users;
+  if total = 0 then
+    raise exception 'auth.users está vacío: inicia sesión en la app al menos una vez antes de correr el seed';
+  end if;
+  if total > 1 then
+    raise notice 'Ojo: hay % usuarios; el seed usará el más antiguo', total;
+  end if;
+end $$;
+
 -- 1) Limpiar el horario actual del usuario
 delete from public.horario_bloques
 where ramo_id in (
   select id from public.ramos
-  where user_id = (select id from auth.users where email = '24zucoo@gmail.com')
+  where user_id = (select id from auth.users order by created_at limit 1)
 );
 
 -- 2) Crear los ramos que falten (por nombre, sin duplicar)
@@ -34,7 +51,7 @@ from (values
   ('Herramientas y Agentes de IA','IA',  '#8b5cf6'),
   ('Fundamentos de Marketing',    'MKT', '#ec4899')
 ) as v (nombre, sigla, color)
-cross join (select id from auth.users where email = '24zucoo@gmail.com') u
+cross join (select id from auth.users order by created_at limit 1) u
 where not exists (
   select 1 from public.ramos r
   where r.user_id = u.id and lower(r.nombre) = lower(v.nombre)
@@ -44,7 +61,7 @@ where not exists (
 insert into public.notas_config (ramo_id)
 select r.id
 from public.ramos r
-where r.user_id = (select id from auth.users where email = '24zucoo@gmail.com')
+where r.user_id = (select id from auth.users order by created_at limit 1)
   and not exists (select 1 from public.notas_config nc where nc.ramo_id = r.id);
 
 -- 3) Bloques del horario (sala null = por confirmar)
@@ -82,4 +99,10 @@ from (values
 ) as v (nombre, tipo, dia, ini, fin, sala)
 join public.ramos r
   on lower(r.nombre) = lower(v.nombre)
- and r.user_id = (select id from auth.users where email = '24zucoo@gmail.com');
+ and r.user_id = (select id from auth.users order by created_at limit 1);
+
+-- 4) Verificación: deberías ver 6 ramos y 21 bloques
+select
+  (select count(*) from public.ramos
+   where user_id = (select id from auth.users order by created_at limit 1)) as ramos,
+  (select count(*) from public.horario_bloques) as bloques;

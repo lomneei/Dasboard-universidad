@@ -52,8 +52,10 @@ pueden estar pendientes** (verificar con él).
   checklist_diario (índice único parcial por tarea+fecha).
 - `schema_v4.sql` — tipo 'actividad' en asistencias + tabla ideas.
 - `seed_horario_2026_2.sql` — borra los bloques y crea ramos/bloques reales
-  del 2do semestre 2026 (6 ramos, módulos 1-7). Busca ramos por nombre; el
-  bloque doble de IA del martes va como un solo bloque 08:20-10:50.
+  del 2do semestre 2026 (6 ramos, 21 bloques, módulos 1-7). Busca ramos por
+  nombre; el bloque doble de IA del martes va como un solo bloque 08:20-10:50.
+  v2: toma el único usuario de auth.users (la v1 filtraba por email y si no
+  calzaba insertaba 0 filas sin error); termina con un select de verificación.
 
 ## Estructura y features
 
