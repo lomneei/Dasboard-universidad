@@ -7,6 +7,7 @@ export const COLORES_RAMO = [
   '#3b82f6', // azul
   '#8b5cf6', // violeta
   '#ec4899', // rosado
+  '#06b6d4', // cian (Entrenamiento Selección)
 ]
 
 export const DIAS_SEMANA = [
@@ -29,9 +30,20 @@ export const TIPOS_EVALUACION = [
   'Otro',
 ]
 
-// Rango del calendario semanal (horas)
-export const HORA_MIN = 8
-export const HORA_MAX = 21
+// Módulos horarios reales de la universidad (la grilla del horario se
+// arma con estas franjas exactas; entre M4 y M5 va el almuerzo)
+export const MODULOS = [
+  { n: 1, ini: '08:20', fin: '09:30' },
+  { n: 2, ini: '09:40', fin: '10:50' },
+  { n: 3, ini: '11:00', fin: '12:10' },
+  { n: 4, ini: '12:20', fin: '13:30' },
+  { n: 5, ini: '14:50', fin: '16:00' },
+  { n: 6, ini: '16:10', fin: '17:20' },
+  { n: 7, ini: '17:30', fin: '18:40' },
+  { n: 8, ini: '18:50', fin: '20:00' },
+  { n: 9, ini: '20:10', fin: '21:20' },
+]
+export const ALMUERZO = { ini: '13:30', fin: '14:50' }
 
 // Tipos de actividad para el registro de asistencia (valores de la DB)
 export const TIPOS_ASISTENCIA = [

@@ -1,12 +1,35 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { DIAS_SEMANA, TIPOS_BLOQUE, HORA_MIN, HORA_MAX } from '../lib/constantes'
+import { DIAS_SEMANA, TIPOS_BLOQUE, MODULOS, ALMUERZO } from '../lib/constantes'
 import { formatearHora, horaADecimal } from '../lib/fechas'
 import Modal from '../components/Modal.jsx'
 import GestionRamos from '../components/GestionRamos.jsx'
 import ControlAsistencia from '../components/ControlAsistencia.jsx'
 
-const ALTO_HORA = 52 // px por hora en la grilla
+// Segmentos verticales de la grilla: los 9 módulos reales + la franja
+// de almuerzo (13:30-14:50) entre M4 y M5. Alturas en px.
+const SEGMENTOS = (() => {
+  const seg = MODULOS.map((m) => ({ ...m, alto: 56 }))
+  seg.splice(4, 0, { ...ALMUERZO, almuerzo: true, alto: 34 })
+  return seg
+})()
+const topSegmento = (i) => SEGMENTOS.slice(0, i).reduce((suma, s) => suma + s.alto, 0)
+const ALTO_GRILLA = topSegmento(SEGMENTOS.length)
+
+// Posiciona un bloque cubriendo los segmentos que toca (los horarios
+// reales calzan con los módulos; un bloque largo abarca varios seguidos)
+function ubicarBloque(iniDec, finDec) {
+  let desde = SEGMENTOS.findIndex((s) => horaADecimal(s.fin) > iniDec)
+  if (desde === -1) desde = SEGMENTOS.length - 1
+  let hasta = desde
+  for (let i = SEGMENTOS.length - 1; i >= desde; i--) {
+    if (horaADecimal(SEGMENTOS[i].ini) < finDec) {
+      hasta = i
+      break
+    }
+  }
+  return { top: topSegmento(desde), alto: topSegmento(hasta + 1) - topSegmento(desde) }
+}
 const FORM_VACIO = {
   ramo_id: '',
   tipo: TIPOS_BLOQUE[0],
@@ -121,10 +144,6 @@ export default function Horario() {
 
   if (cargando) return <p className="text-zinc-400">Cargando horario…</p>
 
-  const horas = []
-  for (let h = HORA_MIN; h < HORA_MAX; h++) horas.push(h)
-  const altoGrilla = (HORA_MAX - HORA_MIN) * ALTO_HORA
-
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -156,7 +175,7 @@ export default function Horario() {
       <div className="overflow-x-auto panel p-4">
         <div className="min-w-[640px]">
           {/* Encabezado de días */}
-          <div className="grid grid-cols-[3rem_repeat(5,1fr)] gap-1">
+          <div className="grid grid-cols-[4.5rem_repeat(5,1fr)] gap-1">
             <div />
             {DIAS_SEMANA.map((d) => (
               <div
@@ -168,17 +187,28 @@ export default function Horario() {
             ))}
           </div>
 
-          {/* Grilla */}
-          <div className="grid grid-cols-[3rem_repeat(5,1fr)] gap-1">
-            {/* Columna de horas */}
-            <div className="relative" style={{ height: altoGrilla }}>
-              {horas.map((h) => (
+          {/* Grilla por módulos */}
+          <div className="grid grid-cols-[4.5rem_repeat(5,1fr)] gap-1">
+            {/* Columna de módulos */}
+            <div className="relative" style={{ height: ALTO_GRILLA }}>
+              {SEGMENTOS.map((s, i) => (
                 <div
-                  key={h}
-                  className="absolute right-2 -translate-y-1/2 text-xs text-zinc-500"
-                  style={{ top: (h - HORA_MIN) * ALTO_HORA }}
+                  key={i}
+                  className="absolute right-2 flex flex-col items-end justify-center"
+                  style={{ top: topSegmento(i), height: s.alto }}
                 >
-                  {String(h).padStart(2, '0')}:00
+                  {s.almuerzo ? (
+                    <span className="text-[9px] text-zinc-600">🍴 almuerzo</span>
+                  ) : (
+                    <>
+                      <span className="text-[10px] font-bold leading-tight text-zinc-400">
+                        M{s.n}
+                      </span>
+                      <span className="text-[9px] leading-tight text-zinc-600">
+                        {s.ini}–{s.fin}
+                      </span>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -188,22 +218,24 @@ export default function Horario() {
               <div
                 key={d.valor}
                 className="relative rounded-lg bg-white/[0.04]"
-                style={{ height: altoGrilla }}
+                style={{ height: ALTO_GRILLA }}
               >
-                {horas.map((h) => (
+                {SEGMENTOS.map((s, i) => (
                   <div
-                    key={h}
-                    className="absolute inset-x-0 border-t border-white/10"
-                    style={{ top: (h - HORA_MIN) * ALTO_HORA }}
+                    key={i}
+                    className={`absolute inset-x-0 ${i > 0 ? 'border-t border-white/10' : ''} ${
+                      s.almuerzo ? 'franja-almuerzo' : ''
+                    }`}
+                    style={{ top: topSegmento(i), height: s.alto }}
                   />
                 ))}
                 {bloques
                   .filter((b) => b.dia_semana === d.valor)
                   .map((b) => {
-                    const inicio = horaADecimal(formatearHora(b.hora_inicio))
-                    const fin = horaADecimal(formatearHora(b.hora_fin))
-                    const top = (inicio - HORA_MIN) * ALTO_HORA
-                    const alto = Math.max((fin - inicio) * ALTO_HORA, 24)
+                    const { top, alto } = ubicarBloque(
+                      horaADecimal(formatearHora(b.hora_inicio)),
+                      horaADecimal(formatearHora(b.hora_fin)),
+                    )
                     return (
                       <button
                         key={b.id}
@@ -219,7 +251,7 @@ export default function Horario() {
                         {/* Nombre de la actividad (no la sigla); en no-cátedras
                             se antepone el tipo, como "Ayudantía Dinámica" */}
                         <p className="line-clamp-2 text-[11px] font-bold leading-tight">
-                          {b.tipo !== 'Cátedra' ? `${b.tipo} ` : ''}
+                          {b.tipo !== 'Cátedra' && b.tipo !== 'Otro' ? `${b.tipo} ` : ''}
                           {b.ramos?.nombre}
                         </p>
                         <p className="truncate text-[10px] leading-tight opacity-80">
