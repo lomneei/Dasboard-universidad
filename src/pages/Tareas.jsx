@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { hoyISO, fechaISO, hoyInicioDia } from '../lib/fechas'
+import {
+  hoyISO,
+  fechaISO,
+  hoyInicioDia,
+  parseFechaLocal,
+  formatearFechaLarga,
+} from '../lib/fechas'
 import {
   materializarTareasHoy,
   agruparPorDia,
@@ -93,7 +99,7 @@ function GridConsistencia({ porDia }) {
 // cumplen consistentemente y cuáles no.
 const DIAS_HEATMAP = 28
 
-function GridPorTarea({ recurrentes, filas }) {
+function GridPorTarea({ recurrentes, filas, onMarcar }) {
   if (recurrentes.length === 0)
     return (
       <p className="py-4 text-center text-sm text-zinc-500">
@@ -108,10 +114,10 @@ function GridPorTarea({ recurrentes, filas }) {
     return d
   })
 
-  // (recurrente, fecha) -> completado
-  const estado = new Map()
+  // (recurrente, fecha) -> instancia del checklist (para poder togglearla)
+  const instancias = new Map()
   for (const f of filas) {
-    if (f.recurrente_id) estado.set(`${f.recurrente_id}|${f.fecha}`, f.completado)
+    if (f.recurrente_id) instancias.set(`${f.recurrente_id}|${f.fecha}`, f)
   }
 
   return (
@@ -141,10 +147,10 @@ function GridPorTarea({ recurrentes, filas }) {
         </div>
 
         {recurrentes.map((rec) => {
-          const celdas = dias.map((d) => ({
-            iso: fechaISO(d),
-            completado: estado.get(`${rec.id}|${fechaISO(d)}`),
-          }))
+          const celdas = dias.map((d) => {
+            const inst = instancias.get(`${rec.id}|${fechaISO(d)}`)
+            return { iso: fechaISO(d), inst, completado: inst?.completado }
+          })
           const conInstancia = celdas.filter((c) => c.completado !== undefined)
           const hechas = conInstancia.filter((c) => c.completado).length
           const pct =
@@ -159,16 +165,17 @@ function GridPorTarea({ recurrentes, filas }) {
                 {rec.texto}
               </span>
               {celdas.map((c) => (
-                <span
+                <button
                   key={c.iso}
+                  onClick={() => onMarcar(rec, c.iso, c.inst)}
                   title={`${rec.texto} · ${c.iso}${
                     c.completado === true
                       ? ': hecha ✓'
                       : c.completado === false
                         ? ': no hecha'
                         : ''
-                  }`}
-                  className={`h-[18px] w-[18px] shrink-0 rounded-[4px] transition-colors ${
+                  } — click para cambiar`}
+                  className={`h-[18px] w-[18px] shrink-0 rounded-[4px] transition-all hover:ring-1 hover:ring-violet-400/60 active:scale-90 ${
                     c.completado === true
                       ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.4)]'
                       : c.completado === false
@@ -188,6 +195,9 @@ function GridPorTarea({ recurrentes, filas }) {
           <span className="h-[10px] w-[10px] rounded-[3px] bg-emerald-500" /> hecha
           <span className="ml-2 h-[10px] w-[10px] rounded-[3px] bg-white/[0.09]" /> no hecha
           <span className="ml-2 h-[10px] w-[10px] rounded-[3px] bg-white/[0.03]" /> sin registro
+          <span className="ml-3 text-zinc-600">
+            click en una celda para marcar/desmarcar ese día
+          </span>
         </div>
       </div>
     </div>
@@ -204,6 +214,9 @@ export default function Tareas() {
   const [recurrentes, setRecurrentes] = useState([])
   // pestaña del panel de consistencia: 'general' | 'tareas'
   const [vistaGrid, setVistaGrid] = useState('general')
+  // día que se está viendo/editando en la lista (permite corregir días
+  // pasados si se te olvidó marcar; nunca es futuro)
+  const [fechaVista, setFechaVista] = useState(hoyISO())
 
   const cargar = async () => {
     const { error: errMat } = await materializarTareasHoy()
@@ -254,9 +267,10 @@ export default function Tareas() {
         .insert({ texto: texto.trim() })
       err = error
     } else {
+      // La puntual cae en el día que se está viendo (hoy por defecto)
       const { error } = await supabase
         .from('checklist_diario')
-        .insert({ fecha: hoyISO(), texto: texto.trim() })
+        .insert({ fecha: fechaVista, texto: texto.trim() })
       err = error
     }
     setGuardando(false)
@@ -283,6 +297,22 @@ export default function Tareas() {
       setError(error.message)
       cargar()
     }
+  }
+
+  // Marca una recurrente en una fecha específica (heatmap o día pasado).
+  // Si ese día no tiene instancia, la crea ya completada.
+  const marcarRecurrente = async (rec, fecha, instancia) => {
+    if (instancia) {
+      alternar(instancia)
+      return
+    }
+    const { data, error } = await supabase
+      .from('checklist_diario')
+      .insert({ fecha, texto: rec.texto, recurrente_id: rec.id, completado: true })
+      .select()
+      .single()
+    if (error) setError(error.message)
+    else setFilas((fs) => [...fs, data])
   }
 
   const eliminar = async (tarea) => {
@@ -333,7 +363,21 @@ export default function Tareas() {
   const porDia = agruparPorDia(filas)
   const racha = calcularRacha(porDia)
   const hoy = hoyISO()
-  const deHoy = filas.filter((f) => f.fecha === hoy)
+  const esHoy = fechaVista === hoy
+  const deVista = filas.filter((f) => f.fecha === fechaVista)
+  // Recurrentes activas sin instancia en el día visto: se listan igual
+  // para poder marcarlas retroactivamente (solo en días pasados; hoy las
+  // crea la materialización)
+  const recurrentesFaltantes = esHoy
+    ? []
+    : recurrentes.filter((r) => !deVista.some((f) => f.recurrente_id === r.id))
+
+  const cambiarDia = (delta) => {
+    const d = parseFechaLocal(fechaVista)
+    d.setDate(d.getDate() + delta)
+    const iso = fechaISO(d)
+    if (iso <= hoy) setFechaVista(iso)
+  }
 
   return (
     <div>
@@ -380,7 +424,7 @@ export default function Tareas() {
         {vistaGrid === 'general' ? (
           <GridConsistencia porDia={porDia} />
         ) : (
-          <GridPorTarea recurrentes={recurrentes} filas={filas} />
+          <GridPorTarea recurrentes={recurrentes} filas={filas} onMarcar={marcarRecurrente} />
         )}
       </div>
 
@@ -420,20 +464,59 @@ export default function Tareas() {
           </button>
           ¿Se repite todos los días?
           <span className="text-xs text-zinc-500">
-            {esRecurrente ? 'Sí — aparecerá cada día hasta que la desactives' : 'No — solo hoy'}
+            {esRecurrente
+              ? 'Sí — aparecerá cada día hasta que la desactives'
+              : `No — solo ${esHoy ? 'hoy' : 'el día seleccionado'}`}
           </span>
         </label>
       </form>
 
-      {/* Tareas de hoy */}
-      <h2 className="mb-3 text-lg font-semibold">Hoy</h2>
-      {deHoy.length === 0 ? (
+      {/* Tareas del día visto (hoy por defecto; se puede volver atrás
+          para marcar lo que se te olvidó) */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold capitalize">
+          {esHoy ? 'Hoy' : formatearFechaLarga(fechaVista)}
+        </h2>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => cambiarDia(-1)}
+            className="btn-fantasma px-2.5 py-1 text-sm"
+            aria-label="Día anterior"
+          >
+            ←
+          </button>
+          <input
+            type="date"
+            value={fechaVista}
+            max={hoy}
+            onChange={(e) => e.target.value && e.target.value <= hoy && setFechaVista(e.target.value)}
+            className="campo px-2 py-1 text-xs"
+          />
+          <button
+            onClick={() => cambiarDia(1)}
+            disabled={esHoy}
+            className="btn-fantasma px-2.5 py-1 text-sm disabled:opacity-40"
+            aria-label="Día siguiente"
+          >
+            →
+          </button>
+          {!esHoy && (
+            <button
+              onClick={() => setFechaVista(hoy)}
+              className="btn-primario px-3 py-1 text-xs"
+            >
+              Hoy
+            </button>
+          )}
+        </div>
+      </div>
+      {deVista.length === 0 && recurrentesFaltantes.length === 0 ? (
         <p className="panel p-6 text-center text-zinc-400">
-          Sin tareas para hoy. Agrega la primera arriba.
+          {esHoy ? 'Sin tareas para hoy. Agrega la primera arriba.' : 'Sin tareas ese día.'}
         </p>
       ) : (
         <ul className="space-y-1.5">
-          {deHoy.map((tarea) => (
+          {deVista.map((tarea) => (
             <li key={tarea.id} className="panel overflow-hidden">
               <div
                 className={`flex items-center gap-3 px-4 py-2.5 transition-colors duration-300 ${
@@ -468,6 +551,26 @@ export default function Tareas() {
                 >
                   🗑
                 </button>
+              </div>
+            </li>
+          ))}
+          {/* Recurrentes sin registro ese día: marcar crea la instancia */}
+          {recurrentesFaltantes.map((rec) => (
+            <li key={`rec-${rec.id}`} className="panel overflow-hidden opacity-75">
+              <div className="flex items-center gap-3 px-4 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={false}
+                  onChange={() => marcarRecurrente(rec, fechaVista, null)}
+                  className="check-tarea h-4.5 w-4.5 shrink-0"
+                />
+                <span className="min-w-0 flex-1 text-sm text-zinc-400">{rec.texto}</span>
+                <span
+                  className="shrink-0 rounded-full bg-white/[0.06] px-2 py-0.5 text-xs text-zinc-500"
+                  title="Ese día no quedó registro de esta tarea; márcala si la hiciste"
+                >
+                  🔁 sin registro
+                </span>
               </div>
             </li>
           ))}
