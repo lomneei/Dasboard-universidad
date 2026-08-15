@@ -75,6 +75,11 @@ pueden estar pendientes** (verificar con él).
   `src/lib/tareas.js`) + puntuales, racha 🔥, y panel Consistencia con dos
   pestañas: "General" (grid 16 semanas estilo GitHub) y "Por tarea" (heatmap
   unificado: fila por recurrente activa × últimos 28 días, verde=hecha).
+  Edición retroactiva: las celdas del heatmap son clickeables (togglean ese
+  día) y la lista tiene navegador de fecha (←/→/date picker, máx hoy) para
+  marcar días pasados; si un día no tiene instancia, `marcarRecurrente` la
+  crea completada, y las recurrentes "sin registro" se listan igual en días
+  pasados para poder marcarlas. Nada de esto toca el estado de hoy.
 - `src/pages/Calendario.jsx` — vista mensual ancha tipo Google Calendar:
   celdas grandes (min-h 92px) con el NOMBRE visible de evaluaciones (borde
   izq. color del ramo + 📝) y eventos de Google (borde cian + chip "G")
